@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Despertar ID™ — Hipnosis personalizada</title>
+  <meta name="description" content="Responde 5 preguntas. Recibe en tu email un audio de hipnosis creado solo para ti. $27, pago único.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #0c0a14;
+      --surface:  #131020;
+      --surface2: #1a1628;
+      --border:   #231f35;
+      --gold:     #c8a94a;
+      --gold-dim: rgba(200,169,74,0.12);
+      --text:     #e9e2d8;
+      --muted:    #7d7669;
+      --r:        12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    a { color: var(--gold); text-decoration: none; }
+    h1, h2, h3 { font-weight: 300; letter-spacing: -0.02em; line-height: 1.2; }
+
+    .container { max-width: 660px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Header ── */
+    header {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    header .container { display: flex; align-items: center; justify-content: center; }
+    .logo {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 14px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    /* ── Hero ── */
+    .hero { padding: 72px 0 56px; text-align: center; }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 { font-size: clamp(30px, 5.5vw, 50px); color: #f2ece0; margin-bottom: 20px; }
+    .hero h1 strong { font-weight: 400; color: var(--gold); }
+
+    .hero .sub {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 420px;
+      margin: 0 auto 36px;
+    }
+
+    .price-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gold-dim);
+      border: 1px solid rgba(200,169,74,0.28);
+      border-radius: 100px;
+      padding: 8px 22px;
+      font-size: 14px;
+      color: var(--gold);
+      margin-bottom: 36px;
+    }
+    .price-badge .amount { font-size: 22px; font-weight: 600; }
+
+    /* ── Buttons ── */
+    .btn-cta {
+      display: inline-block;
+      background: var(--gold);
+      color: #0c0a14;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 14px 32px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.12s;
+    }
+    .btn-cta:hover { opacity: 0.9; transform: translateY(-1px); color: #0c0a14; }
+    .btn-cta:active { transform: translateY(0); }
+    .btn-cta.lg { font-size: 16px; padding: 16px 40px; }
+
+    /* ── How it works ── */
+    .steps {
+      padding: 56px 0;
+      border-top: 1px solid var(--border);
+    }
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 560px) { .steps-grid { grid-template-columns: 1fr; } }
+    .step {
+      text-align: center;
+      padding: 28px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+    }
+    .step-num {
+      width: 36px; height: 36px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      color: var(--gold);
+      margin: 0 auto 14px;
+    }
+    .step h3 { font-size: 15px; font-weight: 500; margin-bottom: 7px; color: #f2ece0; }
+    .step p { font-size: 13px; color: var(--muted); }
+
+    /* ── Form section ── */
+    .form-section { padding: 56px 0 80px; border-top: 1px solid var(--border); }
+    .form-section h2 { font-size: clamp(22px, 4vw, 32px); text-align: center; color: #f2ece0; margin-bottom: 6px; }
+    .form-desc { text-align: center; color: var(--muted); font-size: 15px; margin-bottom: 36px; }
+
+    /* Progress */
+    .progress { display: flex; gap: 7px; justify-content: center; margin-bottom: 32px; }
+    .pdot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s, opacity 0.3s;
+    }
+    .pdot.done   { background: var(--gold); }
+    .pdot.active { background: var(--gold); opacity: 0.45; }
+
+    /* Card */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 36px;
+    }
+    @media (max-width: 480px) { .form-card { padding: 24px 18px; } }
+
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+
+    .step-title { font-size: 20px; color: #f2ece0; margin-bottom: 6px; font-weight: 400; }
+    .step-hint  { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+    /* Fields */
+    .field { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    textarea:focus { border-color: var(--gold); }
+    textarea { min-height: 88px; }
+    ::placeholder { color: #4a4540; }
+
+    /* Intensity */
+    .intensity-display {
+      font-size: 44px;
+      font-weight: 200;
+      color: var(--gold);
+      text-align: center;
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+    .intensity-display sub { font-size: 18px; color: var(--muted); vertical-align: middle; }
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 3px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      background: var(--gold);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px;
+      background: var(--gold);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+    .intensity-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* Nav */
+    .form-nav { display: flex; gap: 12px; margin-top: 28px; align-items: center; }
+    .btn-back {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-back:hover { border-color: var(--muted); color: var(--text); }
+    .btn-next {
+      flex: 1;
+      background: var(--gold);
+      color: #0c0a14;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .btn-next:hover { opacity: 0.9; }
+    .btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Summary */
+    .summary-row {
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+    .summary-val { font-size: 15px; }
+
+    .price-summary { text-align: center; padding: 24px 0 8px; }
+    .price-summary .big { font-size: 50px; font-weight: 200; color: var(--gold); line-height: 1; }
+    .price-summary .note { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* Error */
+    .form-error {
+      background: rgba(239,68,68,0.09);
+      border: 1px solid rgba(239,68,68,0.28);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #f87171;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(12,10,20,0.25);
+      border-top-color: #0c0a14;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Trust bar ── */
+    .trust {
+      padding: 36px 0 52px;
+      border-top: 1px solid var(--border);
+    }
+    .trust-items { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+    .trust-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+    .ti-icon { font-size: 15px; }
+
+    /* ── Thank you ── */
+    .thankyou { padding: 80px 0; text-align: center; }
+    .status-icon {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 32px;
+    }
+    .status-icon.pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(200,169,74,0.35); }
+      50%      { box-shadow: 0 0 0 14px rgba(200,169,74,0); }
+    }
+    .thankyou h1 { font-size: clamp(24px, 5vw, 38px); margin-bottom: 14px; color: #f2ece0; }
+    .thankyou p  { color: var(--muted); max-width: 420px; margin: 0 auto 10px; font-size: 16px; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-size: 13px;
+      margin: 22px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+    .sdot.blink { animation: blink 1.4s ease-in-out infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.18; } }
+
+    /* ── Cancelled ── */
+    .cancelled { padding: 80px 0; text-align: center; }
+    .cancelled h1 { font-size: clamp(24px, 5vw, 38px); margin-bottom: 14px; color: #f2ece0; }
+    .cancelled p  { color: var(--muted); max-width: 380px; margin: 0 auto 32px; }
+
+    /* ── Footer ── */
+    footer { padding: 32px 0; border-top: 1px solid var(--border); text-align: center; }
+    footer p { font-size: 13px; color: var(--muted); }
+    .foot-brand {
+      font-family: Georgia, serif;
+      letter-spacing: 0.15em;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: rgba(200,169,74,0.4);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ -->
+<!--  HOME                               -->
+<!-- ═══════════════════════════════════ -->
+<div id="page-home" class="page active">
+  <header>
+    <div class="container">
+      <span class="logo">Despertar ID™</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">Hipnosis personalizada con inteligencia artificial</p>
+      <h1>
+        Tu mente ya sabe<br>
+        lo que necesita <strong>cambiar.</strong>
+      </h1>
+      <p class="sub">
+        Responde 5 preguntas honestas.<br>
+        Recibe un audio de hipnosis creado solo para ti.
+      </p>
+      <div style="margin-bottom:36px">
+        <div class="price-badge">
+          Pago único &nbsp;<span class="amount">$27</span>&nbsp; · Sin suscripción
+        </div>
+      </div>
+      <a class="btn-cta lg" href="#formulario"
+         onclick="document.getElementById('formulario').scrollIntoView({behavior:'smooth'});return false;">
+        Crear mi hipnosis →
+      </a>
+    </div>
+  </section>
+
+  <section class="steps">
+    <div class="container">
+      <p class="section-label">Cómo funciona</p>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Cuéntame de ti</h3>
+          <p>Responde 5 preguntas sobre lo que quieres transformar.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Paga $27</h3>
+          <p>Pago seguro con PayPal. Un único cobro, sin renovaciones.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Recibe tu audio</h3>
+          <p>En minutos llega a tu email tu hipnosis en MP3, para siempre.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section" id="formulario">
+    <div class="container">
+      <h2>Crea tu hipnosis</h2>
+      <p class="form-desc">Cada respuesta hace el audio más preciso para ti.</p>
+
+      <div class="progress">
+        <div class="pdot" id="d0"></div>
+        <div class="pdot" id="d1"></div>
+        <div class="pdot" id="d2"></div>
+        <div class="pdot" id="d3"></div>
+      </div>
+
+      <div class="form-card">
+
+        <!-- PASO 1: Nombre + Email -->
+        <div class="form-step active" id="step-0">
+          <h3 class="step-title">Comencemos</h3>
+          <p class="step-hint">Usaré tu nombre durante la sesión de hipnosis.</p>
+          <div class="field">
+            <label for="f-name">Tu nombre</label>
+            <input type="text" id="f-name" placeholder="Ej: María" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label for="f-email">Tu email</label>
+            <input type="email" id="f-email" placeholder="Aquí recibirás tu audio" autocomplete="email">
+          </div>
+          <div class="form-nav">
+            <button class="btn-next" onclick="nextStep(0)">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- PASO 2: Q1 + Q2 -->
+        <div class="form-step" id="step-1">
+          <h3 class="step-title">¿Dónde estás hoy?</h3>
+          <p class="step-hint">Cuanto más específico/a seas, mejor funciona el audio.</p>
+          <div class="field">
+            <label for="f-q1">¿Qué quieres cambiar o soltar?</label>
+            <textarea id="f-q1" placeholder="Ej: el miedo a fracasar, la procrastinación, la ansiedad social..."></textarea>
+          </div>
+          <div class="field">
+            <label for="f-q2">¿Cómo te sientes con esto ahora mismo?</label>
+            <textarea id="f-q2" placeholder="Ej: frustrado/a, atrapado/a, cansado/a de repetir el mismo patrón..."></textarea>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(1)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(1)">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- PASO 3: Q3 + Intensidad -->
+        <div class="form-step" id="step-2">
+          <h3 class="step-title">¿A dónde quieres ir?</h3>
+          <p class="step-hint">Describe tu estado ideal con la mayor claridad posible.</p>
+          <div class="field">
+            <label for="f-q3">¿Quién quieres ser / qué quieres lograr?</label>
+            <textarea id="f-q3" placeholder="Ej: sentirme seguro/a al hablar en público, tomar acción sin paralizarme..."></textarea>
+          </div>
+          <div class="field">
+            <label>Intensidad del cambio que buscas (1 = leve · 10 = urgente)</label>
+            <div class="intensity-display" id="intensity-val">7<sub> / 10</sub></div>
+            <input type="range" id="f-intensity" min="1" max="10" value="7"
+              oninput="document.getElementById('intensity-val').innerHTML = this.value + '<sub> / 10</sub>'">
+            <div class="intensity-labels"><span>1 — Leve</span><span>10 — Urgente</span></div>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(2)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(2)">Ver resumen →</button>
+          </div>
+        </div>
+
+        <!-- PASO 4: Resumen + Pago -->
+        <div class="form-step" id="step-3">
+          <h3 class="step-title">Resumen de tu hipnosis</h3>
+          <p class="step-hint">Revisa antes de ir al pago.</p>
+
+          <div id="summary-rows">
+            <div class="summary-row"><div class="summary-lbl">Nombre</div><div class="summary-val" id="s-name"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Email</div><div class="summary-val" id="s-email"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Quiero cambiar</div><div class="summary-val" id="s-q1"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Me siento ahora</div><div class="summary-val" id="s-q2"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Quiero lograr</div><div class="summary-val" id="s-q3"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Intensidad</div><div class="summary-val" id="s-intensity"></div></div>
+          </div>
+
+          <div class="price-summary">
+            <div class="big">$27</div>
+            <div class="note">Pago único · MP3 personalizado · Entrega por email</div>
+          </div>
+
+          <div class="form-error" id="pay-error"></div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(3)">← Editar</button>
+            <button class="btn-next" id="btn-pay" onclick="submitOrder()">
+              Pagar con PayPal →
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="trust">
+    <div class="container">
+      <div class="trust-items">
+        <div class="trust-item"><span class="ti-icon">⚡</span> Entrega en minutos</div>
+        <div class="trust-item"><span class="ti-icon">🔒</span> Pago seguro con PayPal</div>
+        <div class="trust-item"><span class="ti-icon">🎧</span> Audio MP3 para siempre</div>
+        <div class="trust-item"><span class="ti-icon">✨</span> 100% personalizado</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>¿Preguntas? → <a href="mailto:hola@despertarid.com">hola@despertarid.com</a></p>
+      <p class="foot-brand">Despertar ID™ · Transformación de identidad</p>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!--  GRACIAS                            -->
+<!-- ═══════════════════════════════════ -->
+<div id="page-gracias" class="page">
+  <header>
+    <div class="container"><span class="logo">Despertar ID™</span></div>
+  </header>
+  <div class="thankyou">
+    <div class="container">
+      <div class="status-icon pulse" id="status-icon">⏳</div>
+      <h1 id="status-title">Pago recibido.<br>Creando tu hipnosis…</h1>
+      <p id="status-desc">Estamos generando tu audio personalizado con IA. Esto toma unos minutos.</p>
+      <div class="status-badge">
+        <div class="sdot blink" id="sdot"></div>
+        <span id="status-text">Procesando…</span>
+      </div>
+      <p id="status-sub" style="font-size:14px;color:var(--muted);margin-top:16px;">
+        Recibirás el audio en <strong id="status-email" style="color:var(--text)">tu email</strong>.
+        No cierres esta ventana aún.
+      </p>
+    </div>
+  </div>
+  <footer>
+    <div class="container"><p class="foot-brand">Despertar ID™</p></div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!--  CANCELADO                          -->
+<!-- ═══════════════════════════════════ -->
+<div id="page-cancelado" class="page">
+  <header>
+    <div class="container"><span class="logo">Despertar ID™</span></div>
+  </header>
+  <div class="cancelled">
+    <div class="container">
+      <div class="status-icon" style="color:var(--muted);border-color:var(--border)">✕</div>
+      <h1>Pago cancelado</h1>
+      <p>No se realizó ningún cobro. Puedes volver e intentarlo cuando quieras.</p>
+      <a class="btn-cta" href="/">Volver al inicio →</a>
+    </div>
+  </div>
+  <footer>
+    <div class="container"><p class="foot-brand">Despertar ID™</p></div>
+  </footer>
+</div>
+
+<script>
+  // ─── Router ─────────────────────────────────
+  const ROUTES = { '/': 'page-home', '/gracias': 'page-gracias', '/cancelado': 'page-cancelado' };
+
+  function route() {
+    const id = ROUTES[location.pathname] || 'page-home';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'page-gracias') initGracias();
+    if (id === 'page-home')    updateProgress();
+  }
+
+  window.addEventListener('popstate', route);
+  document.addEventListener('DOMContentLoaded', route);
+
+  // ─── Multi-step form ─────────────────────────
+  let step = 0;
+
+  function updateProgress() {
+    ['d0','d1','d2','d3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.className = 'pdot' + (i < step ? ' done' : i === step ? ' active' : '');
+    });
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+    step = n;
+    updateProgress();
+  }
+
+  function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+  function nextStep(from) {
+    if (from === 0) {
+      if (!val('f-name'))                           return alert('Por favor ingresa tu nombre.');
+      if (!val('f-email') || !val('f-email').includes('@')) return alert('Por favor ingresa un email válido.');
+      showStep(1);
+    } else if (from === 1) {
+      if (!val('f-q1')) return alert('Por favor describe qué quieres cambiar.');
+      if (!val('f-q2')) return alert('Por favor describe cómo te sientes ahora.');
+      showStep(2);
+    } else if (from === 2) {
+      if (!val('f-q3')) return alert('Por favor describe qué quieres lograr.');
+      fillSummary();
+      showStep(3);
+    }
+  }
+
+  function prevStep(from) { showStep(from - 1); }
+
+  function fillSummary() {
+    document.getElementById('s-name').textContent      = val('f-name');
+    document.getElementById('s-email').textContent     = val('f-email');
+    document.getElementById('s-q1').textContent        = val('f-q1');
+    document.getElementById('s-q2').textContent        = val('f-q2');
+    document.getElementById('s-q3').textContent        = val('f-q3');
+    document.getElementById('s-intensity').textContent = (document.getElementById('f-intensity')?.value || '7') + ' / 10';
+  }
+
+  // ─── Submit order ────────────────────────────
+  async function submitOrder() {
+    const btn    = document.getElementById('btn-pay');
+    const errEl  = document.getElementById('pay-error');
+    errEl.style.display = 'none';
+
+    const payload = {
+      name:      val('f-name'),
+      email:     val('f-email'),
+      q1:        val('f-q1'),
+      q2:        val('f-q2'),
+      q3:        val('f-q3'),
+      intensity: parseInt(document.getElementById('f-intensity')?.value || '7', 10)
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Creando orden…';
+
+    try {
+      const res  = await fetch('/api/order/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.error || 'Error al crear la orden.');
+
+      localStorage.setItem('deid_orderId', json.orderId);
+      localStorage.setItem('deid_email',   payload.email);
+
+      window.location.href = json.paypalLink;
+
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = 'Pagar con PayPal →';
+      errEl.textContent = err.message || 'Algo salió mal. Intenta de nuevo.';
+      errEl.style.display = 'block';
+    }
+  }
+
+  // ─── Thank you / status polling ──────────────
+  let pollTimer = null;
+
+  function initGracias() {
+    const orderId = localStorage.getItem('deid_orderId');
+    const email   = localStorage.getItem('deid_email');
+
+    if (email) document.getElementById('status-email').textContent = email;
+
+    if (!orderId) {
+      document.getElementById('status-desc').textContent =
+        'Tu hipnosis está siendo procesada. Revisa tu email en unos minutos.';
+      return;
+    }
+
+    pollStatus(orderId);
+    pollTimer = setInterval(() => pollStatus(orderId), 5000);
+  }
+
+  async function pollStatus(orderId) {
+    try {
+      const res  = await fetch('/api/order/' + orderId + '/status');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.status === 'delivered') {
+        clearInterval(pollTimer);
+        setDelivered();
+      } else if (data.status === 'error') {
+        clearInterval(pollTimer);
+        setError();
+      }
+    } catch (_) { /* red error — sigue intentando */ }
+  }
+
+  function setDelivered() {
+    const icon = document.getElementById('status-icon');
+    icon.textContent = '✓';
+    icon.classList.remove('pulse');
+    icon.style.color       = 'var(--gold)';
+    icon.style.borderColor = 'var(--gold)';
+
+    document.getElementById('status-title').textContent =
+      '¡Tu hipnosis está lista!';
+    document.getElementById('status-desc').textContent =
+      'Ya enviamos el audio a tu email. Busca el mensaje con asunto "tu hipnosis personalizada está lista".';
+    document.getElementById('status-text').textContent = 'Audio enviado ✓';
+
+    const dot = document.getElementById('sdot');
+    dot.classList.remove('blink');
+    dot.style.background = '#4ade80';
+
+    document.getElementById('status-sub').textContent =
+      'Revisa también la carpeta de spam, por si acaso.';
+
+    localStorage.removeItem('deid_orderId');
+  }
+
+  function setError() {
+    document.getElementById('status-icon').textContent = '!';
+    document.getElementById('status-title').textContent = 'Hubo un problema';
+    document.getElementById('status-desc').textContent  =
+      'Algo salió mal al generar tu hipnosis. Escríbenos y lo resolvemos de inmediato.';
+    document.getElementById('status-text').textContent  = 'Error en procesamiento';
+    document.getElementById('sdot').style.background    = '#f87171';
+  }
+</script>
+</body>
+</html>
