@@ -4,14 +4,14 @@
 // ============================================
 
 import ffmpeg from 'fluent-ffmpeg';
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { writeFile, unlink, readFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+ffmpeg.setFfmpegPath(ffmpegStatic);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
