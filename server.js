@@ -41,9 +41,9 @@ const orders = new Map();
 // PASO 1: Recibir formulario y crear orden
 // ============================================
 app.post('/api/order/create', async (req, res) => {
-  const { name, email, gender, q1, q2, q3, intensity } = req.body;
+  const { name, email, gender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = req.body;
 
-  if (!name || !email || !gender || !q1 || !q2 || !q3 || !intensity) {
+  if (!name || !email || !gender || !q1 || !q2 || !qtime || !qbelief || !qbelieforigin || !q3 || !q3vision) {
     return res.status(400).json({ error: 'Faltan campos requeridos.' });
   }
 
@@ -60,8 +60,7 @@ app.post('/api/order/create', async (req, res) => {
     name,
     email,
     gender,
-    q1, q2, q3,
-    intensity,
+    q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision,
     status: 'pending_payment',
     createdAt: new Date().toISOString()
   });
@@ -123,13 +122,13 @@ app.post('/api/paypal/webhook', async (req, res) => {
 // PASO 3: Generar hipnosis + audio + enviar
 // ============================================
 async function processHypnosis(order) {
-  const { id, name, email, gender, q1, q2, q3, intensity } = order;
+  const { id, name, email, gender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = order;
 
   console.log(`[${id}] Iniciando generación para ${email}`);
 
   // 3a. Generar guion con Claude
   console.log(`[${id}] Generando guion con IA...`);
-  const script = await generateScript(anthropic, { name, q1, q2, q3, intensity });
+  const script = await generateScript(anthropic, { name, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision });
   console.log('GUION GENERADO:\n' + script);
 
   // 3b. Convertir guion a audio con ElevenLabs
@@ -151,41 +150,184 @@ async function processHypnosis(order) {
 // ============================================
 // Generador de guion con Claude
 // ============================================
-async function generateScript(client, { name, q1, q2, q3, intensity }) {
-  const prompt = `Eres un experto en hipnoterapia y transformación de identidad del método Despertar ID™.
+async function generateScript(client, { name, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }) {
+  const prompt = `Eres el creador de hipnosis de identidad del método Despertar ID™. Escribe un guion de hipnosis profundamente personalizado siguiendo la estructura de seis fases exacta que se detalla abajo.
 
-Tu tarea es crear un guion de hipnosis personalizado y poderoso para esta persona.
-
-DATOS DEL USUARIO:
+DATOS DEL CLIENTE:
 - Nombre: ${name}
-- Quiere cambiar: ${q1}
-- Siente ahora: ${q2}
-- Quiere lograr: ${q3}
-- Intensidad emocional: ${intensity}/10
+- Qué quiere cambiar: ${q1}
+- Cómo se siente ahora: ${q2}
+- Tiempo cargando esto: ${qtime}
+- Frase limitante que se repite: ${qbelief}
+- Cuándo empezó a creer eso: ${qbelieforigin}
+- Quién quiere ser / qué quiere lograr: ${q3}
+- Cómo se ve la versión que ya superó esto: ${q3vision}
 
-INSTRUCCIONES PARA EL GUION:
-1. Usa el nombre de la persona al inicio y durante el proceso
-2. Usa lenguaje simple, directo y cálido — como si le hablaras a un niño de 7 años
-3. Estructura:
-   a) INDUCCIÓN (2-3 min): Respiración, relajación progresiva del cuerpo
-   b) PROFUNDIZACIÓN (2 min): Bajar a estado alfa-theta
-   c) NÚCLEO (8-10 min): Trabajar directamente la creencia limitante identificada en q1/q2, instalar nueva identidad del q3
-   d) ANCLAJE (2 min): Anclar el nuevo estado con una frase corta que la persona pueda usar
-   e) DESPERTAR (1 min): Salida suave y energizante
-
-REGLAS DE ESTILO:
-- El guion debe estar escrito en español latino, sin anglicismos ni palabras de otros idiomas
-- Sin tecnicismos ni palabras complicadas
-- Ritmo lento con pausas naturales indicadas con puntos suspensivos ... Nunca escribas la palabra "pausa" ni uses corchetes
+REGLAS GLOBALES DE ESTILO:
+- Español latino. Sin anglicismos.
+- Lenguaje simple, cálido y directo.
 - Frases cortas. Máximo 15 palabras por frase.
-- Repite los conceptos clave 2-3 veces con variaciones
-- Termina con una afirmación de identidad poderosa
+- Pausas con puntos suspensivos ... Nunca escribas "pausa" ni uses corchetes.
+- Escribe SOLO el guion. Sin títulos de fase, sin notas, sin explicaciones.
+- Cada idea en su propia línea o con salto de línea.
 
-Escribe SOLO el guion, sin títulos ni explicaciones adicionales. Listo para ser narrado en español latino.`;
+════════════════════════════════════════
+ESTRUCTURA EXACTA DEL GUION
+════════════════════════════════════════
+
+FASE 0 — INTRODUCCIÓN CONSCIENTE (máximo 2 minutos)
+
+Comienza nombrando exactamente lo que el cliente escribió como qué quiere cambiar: "${q1}"
+Usa sus propias palabras o muy cerca. Nombra el dolor, no la solución.
+Explica que esto no es una meditación. Es una hipnosis de identidad.
+Nombra la creencia limitante exacta: "${qbelief}"
+Anuncia la identidad nueva usando: "${q3vision}"
+
+Instrucciones, cada una en su propia línea:
+Busca un lugar sin interrupciones.
+Usa audífonos.
+Escúchala 21 días seguidos.
+
+Invita a cerrar los ojos.
+
+FASE 1 — INDUCCIÓN
+
+Respiraciones guiadas con conteo. Mínimo tres ciclos completos. Formato exacto:
+
+Inhala.
+Dos.
+Tres.
+Cuatro.
+Exhala.
+Dos.
+Tres.
+Cuatro.
+Cinco.
+Seis.
+
+Relajación del cuerpo en este orden: hombros, mandíbula, manos, espacio entre las cejas.
+Invitación a dejar ir el día. Caja imaginaria con todo lo que pasó. Ciérrala. Déjala afuera.
+
+Cuenta regresiva del 5 al 1. Formato exacto:
+
+Cinco.
+Siente cómo tu cuerpo se hunde un poco más.
+Cuatro.
+Cada respiración te lleva más adentro.
+Tres.
+Tu mente crítica descansa.
+Lo que escuches ahora llega directo.
+Dos.
+Más adentro.
+Más tranquilo.
+Más tú.
+Uno.
+Aquí estás.
+Listo.
+
+FASE 2 — REENCUADRE DEL MOMENTO
+
+Dile que hoy no está meditando. Está haciendo el trabajo más importante que existe. Cambiar lo que cree sobre sí mismo.
+
+Introduce la creencia: "${qbelief}" Nómbrala directamente.
+
+Texto exacto:
+
+Nota cómo esa creencia aparece sola.
+Sin que tú la llames.
+Sin que tú la elijas.
+Eso es porque fue instalada tan profundo que se volvió automática.
+Hoy la vemos juntos.
+Y lo que puedes ver, puedes cambiar.
+
+Desmonta la creencia usando lo que respondió sobre cuándo empezó: "${qbelieforigin}"
+No nació con ella. La aprendió. La heredó. La instalaron sin su permiso. Puede desinstalarla.
+
+REGLA ESPECIAL: Si qbelieforigin contiene "niño" o "siempre ha estado ahí", esta fase debe ser más larga y más tierna. Primero valida el dolor profundo sin prisa. Luego desmonta. Nunca al revés.
+
+FASE 3 — VISUALIZACIÓN DEL ESPEJO DE IDENTIDAD
+
+Dos versiones del oyente en el mismo cuarto. Las dos son él. Completamente distintas.
+
+La primera: la que conoce hoy. La que carga "${qbelief}". Mírala con compasión. Sin juicio. Sin vergüenza. Dile: gracias por traerme hasta aquí.
+
+La segunda: constrúyela con: "${q3vision}"
+Describe cómo se para, cómo respira, su postura, cómo camina, cómo habla. Siempre paz. No arrogancia. Paz.
+
+Afirmación de respiración. Repite la creencia nueva cinco veces. Inhala la creencia. Exhala lo que no pertenece.
+
+Texto exacto:
+
+Pon una mano en tu pecho.
+Siente el calor de tu propia mano.
+Eso que sientes ahí es real.
+Y esta versión que acabas de ver también lo es.
+Cada vez que pongas tu mano aquí durante los próximos 21 días,
+tu mente va a recordar lo que sentiste en este momento.
+No tienes que hacer nada más.
+Solo respirar.
+Y recordar.
+
+FASE 4 — AFIRMACIONES DE IDENTIDAD
+
+Texto exacto de apertura:
+
+Ahora escucha estas palabras como si fueran tuyas.
+Porque lo son.
+Cada una.
+
+Las afirmaciones siempre empiezan con: Soy la clase de persona que.
+Nunca en futuro. Siempre en presente.
+Entre ocho y doce afirmaciones distintas.
+Cada una desarrollada en cuatro a ocho líneas.
+Construidas alrededor del dolor "${q1}" y la identidad nueva "${q3vision}".
+Intercala respiraciones guiadas cada dos o tres afirmaciones.
+Incluye un reenganche de atención cada tres o cuatro minutos.
+
+FASE 5 — PROPÓSITO Y GRATITUD ANTICIPATORIA
+
+Línea de permiso antes de hablar de impacto en otros.
+Pregunta 1: qué se vuelve posible cuando ya no tienes este bloqueo.
+Pregunta 2: quién más se libera cuando tú te liberas.
+Gratitud anticipatoria por lo que ya se está moviendo.
+
+Cuatro pares de respiración. Termina siempre con:
+Inhala quién eres de verdad.
+Exhala quién te dijeron que debías ser.
+
+FASE 6 — CIERRE, ANCLAJE Y LLAMADO A LA ACCIÓN
+
+Cierre emocional sin prisa. El subconsciente cambia con repetición, no con intensidad. Por eso 21 días seguidos.
+Historia hacia el futuro: vas a mirar atrás y sonreír por haber empezado hoy.
+
+Llamado a la acción. Misma voz, mismo ritmo. Texto exacto:
+
+Si lo que viviste aquí resonó contigo, hay un camino completo esperándote. Se llama Reinicio de Identidad. Es el proceso donde esto que comenzaste hoy se vuelve permanente. No como un curso. Como una transformación real. El link está abajo. Sin prisa. Pero si ya sabes, confía.
+
+Cierre final. Texto exacto:
+
+No estás esperando convertirte en esa persona.
+Estás recordando que ya lo eres.
+
+Sensación de sellado. Texto exacto:
+
+Y cada vez que respires profundo hoy,
+esto se activa de nuevo.
+No necesitas recordarlo.
+Tu cuerpo ya lo sabe.
+
+Cierre absoluto. Texto exacto:
+
+Abre los ojos cuando estés listo.
+Despacio.
+Con calma.
+Y lleva contigo lo que encontraste aquí.
+Porque ya es tuyo.
+Siempre lo fue.`;
 
   const response = await client.messages.create({
     model: 'claude-opus-4-5',
-    max_tokens: 3000,
+    max_tokens: 6000,
     messages: [{ role: 'user', content: prompt }]
   });
 
@@ -199,22 +341,29 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
   await resendClient.emails.send({
     from: 'Despertar ID™ <hipnosis@qrise.co>',
     to: email,
-    subject: `${name}, tu hipnosis personalizada está lista`,
+    subject: `${name}, esto fue creado solo para ti`,
     html: `
-      <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a;">
-        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 8px;">Tu hipnosis está lista, ${name}.</h1>
-        <p style="color: #555; font-size: 15px; line-height: 1.7; margin-bottom: 24px;">
-          Creé este audio especialmente para ti, basado en lo que me compartiste.
-          Escúchalo cuando estés en un lugar tranquilo, con audífonos si puedes.
+      <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a; line-height: 1.8;">
+        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${name}, tu hipnosis está lista.</h1>
+        <p style="color: #333; font-size: 15px; margin-bottom: 20px;">La creé basándome exactamente en lo que me compartiste.</p>
+        <p style="color: #333; font-size: 15px; margin-bottom: 8px;"><strong>Antes de darle play, lee esto:</strong></p>
+        <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
+          Escúchala en un lugar sin interrupciones.<br>
+          Usa audífonos si puedes.<br>
+          Los primeros días puedes no sentir nada dramático. Eso es normal. El cambio ocurre por debajo de lo que puedes ver. Confía en el proceso.<br>
+          Escúchala 21 días seguidos. No 20. No 15. 21.
         </p>
-        <p style="color: #555; font-size: 14px;">
-          Encuentra el archivo de audio adjunto a este email.<br>
-          Guárdalo — es tuyo para siempre.
+        <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
+          Tu hipnosis está adjunta a este correo como archivo MP3.<br>
+          Es tuya para siempre.
         </p>
+        <p style="color: #555; font-size: 15px; margin-bottom: 32px;">
+          Cuando empieces a notar el cambio, hay un siguiente paso esperándote.<br>
+          Pero por ahora, solo dale play.
+        </p>
+        <p style="color: #333; font-size: 15px;">Con intención,<br><strong>Despertar ID</strong></p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
-        <p style="font-size: 12px; color: #999;">
-          Despertar ID™ · Orden #${orderId.slice(0, 8).toUpperCase()}
-        </p>
+        <p style="font-size: 12px; color: #999;">Despertar ID™ · Orden #${orderId.slice(0, 8).toUpperCase()}</p>
       </div>
     `,
     attachments: [

@@ -58,9 +58,8 @@
     .hero { padding: 72px 0 56px; text-align: center; }
 
     .eyebrow {
-      font-size: 11px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 0.04em;
       color: var(--muted);
       margin-bottom: 24px;
     }
@@ -323,6 +322,24 @@
     .voice-opt .voice-icon { font-size: 26px; display: block; margin-bottom: 6px; }
     .voice-opt .voice-label { font-size: 13px; letter-spacing: 0.05em; }
 
+    /* Choice selector */
+    .choice-selector { display: flex; flex-direction: column; gap: 8px; }
+    .choice-opt {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      width: 100%;
+    }
+    .choice-opt:hover { border-color: var(--gold); color: var(--text); }
+    .choice-opt.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+
     /* Error */
     .form-error {
       background: rgba(239,68,68,0.09);
@@ -420,14 +437,14 @@
 
   <section class="hero">
     <div class="container">
-      <p class="eyebrow">Hipnosis personalizada con inteligencia artificial</p>
+      <p class="eyebrow">¿Llevas años sabiendo lo que necesitas cambiar y aun así no cambia?</p>
       <h1>
         Tu mente ya sabe<br>
         lo que necesita <strong>cambiar.</strong>
       </h1>
       <p class="sub">
-        Responde 5 preguntas honestas.<br>
-        Recibe un audio de hipnosis creado solo para ti.
+        Tu subconsciente tiene la respuesta.<br>
+        Esta hipnosis va a buscarla.
       </p>
       <div style="margin-bottom:36px">
         <div class="price-badge">
@@ -436,7 +453,7 @@
       </div>
       <a class="btn-cta lg" href="#formulario"
          onclick="document.getElementById('formulario').scrollIntoView({behavior:'smooth'});return false;">
-        Crear mi hipnosis →
+        Quiero mi hipnosis →
       </a>
     </div>
   </section>
@@ -447,18 +464,18 @@
       <div class="steps-grid">
         <div class="step">
           <div class="step-num">1</div>
-          <h3>Cuéntame de ti</h3>
-          <p>Responde 5 preguntas sobre lo que quieres transformar.</p>
+          <h3>Cuéntame lo que quieres cambiar</h3>
+          <p>Responde preguntas honestas sobre lo que cargas y hacia dónde quieres ir.</p>
         </div>
         <div class="step">
           <div class="step-num">2</div>
-          <h3>Paga $27</h3>
-          <p>Pago seguro con PayPal. Un único cobro, sin renovaciones.</p>
+          <h3>Recibe tu hipnosis creada solo para ti</h3>
+          <p>En minutos llega a tu email un audio MP3 diseñado para tu mente específicamente.</p>
         </div>
         <div class="step">
           <div class="step-num">3</div>
-          <h3>Recibe tu audio</h3>
-          <p>En minutos llega a tu email tu hipnosis en MP3, para siempre.</p>
+          <h3>Escúchala 21 días y observa lo que se mueve</h3>
+          <p>El subconsciente cambia con repetición. No con intensidad. Confía en el proceso.</p>
         </div>
       </div>
     </div>
@@ -474,6 +491,7 @@
         <div class="pdot" id="d1"></div>
         <div class="pdot" id="d2"></div>
         <div class="pdot" id="d3"></div>
+        <div class="pdot" id="d4"></div>
       </div>
 
       <div class="form-card">
@@ -520,14 +538,46 @@
             <label for="f-q2">¿Cómo te sientes con esto ahora mismo?</label>
             <textarea id="f-q2" placeholder="Ej: frustrado/a, atrapado/a, cansado/a de repetir el mismo patrón..."></textarea>
           </div>
+          <div class="field">
+            <label>¿Cuánto tiempo llevas cargando esto?</label>
+            <div class="choice-selector">
+              <button type="button" class="choice-opt" onclick="selectTime(this)">Menos de un año</button>
+              <button type="button" class="choice-opt" onclick="selectTime(this)">Entre uno y cinco años</button>
+              <button type="button" class="choice-opt" onclick="selectTime(this)">Más de cinco años</button>
+              <button type="button" class="choice-opt" onclick="selectTime(this)">Toda mi vida</button>
+            </div>
+          </div>
           <div class="form-nav">
             <button class="btn-back" onclick="prevStep(1)">← Volver</button>
             <button class="btn-next" onclick="nextStep(1)">Continuar →</button>
           </div>
         </div>
 
-        <!-- PASO 3: Q3 + Intensidad -->
+        <!-- PASO 3: ¿Qué te dices cuando fallas? -->
         <div class="form-step" id="step-2">
+          <h3 class="step-title">¿Qué te dices cuando fallas?</h3>
+          <p class="step-hint">Esta es la parte más importante. Sé honesto contigo.</p>
+          <div class="field">
+            <label for="f-qbelief">La frase que más se repite en tu cabeza</label>
+            <textarea id="f-qbelief" placeholder="Ej: no soy suficiente, siempre me pasa lo mismo, no soy capaz…"></textarea>
+          </div>
+          <div class="field">
+            <label>¿Cuándo crees que empezaste a creer eso?</label>
+            <div class="choice-selector">
+              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">De niño, algo que me dijeron o me pasó</button>
+              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">En una relación o experiencia difícil</button>
+              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">En el trabajo o al fracasar en algo</button>
+              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">No lo sé, siempre ha estado ahí</button>
+            </div>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(2)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(2)">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- PASO 4: ¿A dónde quieres ir? -->
+        <div class="form-step" id="step-3">
           <h3 class="step-title">¿A dónde quieres ir?</h3>
           <p class="step-hint">Describe tu estado ideal con la mayor claridad posible.</p>
           <div class="field">
@@ -535,20 +585,17 @@
             <textarea id="f-q3" placeholder="Ej: sentirme seguro/a al hablar en público, tomar acción sin paralizarme..."></textarea>
           </div>
           <div class="field">
-            <label>Intensidad del cambio que buscas (1 = leve · 10 = urgente)</label>
-            <div class="intensity-display" id="intensity-val">7<sub> / 10</sub></div>
-            <input type="range" id="f-intensity" min="1" max="10" value="7"
-              oninput="document.getElementById('intensity-val').innerHTML = this.value + '<sub> / 10</sub>'">
-            <div class="intensity-labels"><span>1 — Leve</span><span>10 — Urgente</span></div>
+            <label for="f-q3vision">¿Cómo se ve la versión de ti que ya superó esto?</label>
+            <textarea id="f-q3vision" placeholder="Ej: toma decisiones sin miedo, confía en sí misma, no necesita aprobación de nadie…"></textarea>
           </div>
           <div class="form-nav">
-            <button class="btn-back" onclick="prevStep(2)">← Volver</button>
-            <button class="btn-next" onclick="nextStep(2)">Ver resumen →</button>
+            <button class="btn-back" onclick="prevStep(3)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(3)">Ver resumen →</button>
           </div>
         </div>
 
-        <!-- PASO 4: Resumen + Pago -->
-        <div class="form-step" id="step-3">
+        <!-- PASO 5: Resumen + Pago -->
+        <div class="form-step" id="step-4">
           <h3 class="step-title">Resumen de tu hipnosis</h3>
           <p class="step-hint">Revisa antes de ir al pago.</p>
 
@@ -558,8 +605,10 @@
             <div class="summary-row"><div class="summary-lbl">Voz</div><div class="summary-val" id="s-gender"></div></div>
             <div class="summary-row"><div class="summary-lbl">Quiero cambiar</div><div class="summary-val" id="s-q1"></div></div>
             <div class="summary-row"><div class="summary-lbl">Me siento ahora</div><div class="summary-val" id="s-q2"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Tiempo cargando esto</div><div class="summary-val" id="s-qtime"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Frase que se repite</div><div class="summary-val" id="s-qbelief"></div></div>
             <div class="summary-row"><div class="summary-lbl">Quiero lograr</div><div class="summary-val" id="s-q3"></div></div>
-            <div class="summary-row"><div class="summary-lbl">Intensidad</div><div class="summary-val" id="s-intensity"></div></div>
+            <div class="summary-row"><div class="summary-lbl">La versión superada</div><div class="summary-val" id="s-q3vision"></div></div>
           </div>
 
           <div class="price-summary">
@@ -569,7 +618,7 @@
 
           <div class="form-error" id="pay-error"></div>
           <div class="form-nav">
-            <button class="btn-back" onclick="prevStep(3)">← Editar</button>
+            <button class="btn-back" onclick="prevStep(4)">← Editar</button>
             <button class="btn-next" id="btn-pay" onclick="submitOrder()">
               Pagar con PayPal →
             </button>
@@ -664,6 +713,8 @@
   // ─── Multi-step form ─────────────────────────
   let step = 0;
   let selectedVoice = '';
+  let selectedTime = '';
+  let selectedBeliefOrigin = '';
 
   function selectVoice(gender) {
     selectedVoice = gender;
@@ -671,8 +722,20 @@
     document.getElementById('voice-female').classList.toggle('selected', gender === 'female');
   }
 
+  function selectTime(btn) {
+    selectedTime = btn.textContent.trim();
+    btn.closest('.choice-selector').querySelectorAll('.choice-opt').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  function selectBeliefOrigin(btn) {
+    selectedBeliefOrigin = btn.textContent.trim();
+    btn.closest('.choice-selector').querySelectorAll('.choice-opt').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
   function updateProgress() {
-    ['d0','d1','d2','d3'].forEach((id, i) => {
+    ['d0','d1','d2','d3','d4'].forEach((id, i) => {
       const el = document.getElementById(id);
       if (!el) return;
       el.className = 'pdot' + (i < step ? ' done' : i === step ? ' active' : '');
@@ -690,47 +753,58 @@
 
   function nextStep(from) {
     if (from === 0) {
-      if (!val('f-name'))                           return alert('Por favor ingresa tu nombre.');
+      if (!val('f-name'))                                    return alert('Por favor ingresa tu nombre.');
       if (!val('f-email') || !val('f-email').includes('@')) return alert('Por favor ingresa un email válido.');
-      if (!selectedVoice)                           return alert('Por favor elige la voz del guía.');
+      if (!selectedVoice)                                    return alert('Por favor elige la voz del guía.');
       showStep(1);
     } else if (from === 1) {
-      if (!val('f-q1')) return alert('Por favor describe qué quieres cambiar.');
-      if (!val('f-q2')) return alert('Por favor describe cómo te sientes ahora.');
+      if (!val('f-q1'))  return alert('Por favor describe qué quieres cambiar.');
+      if (!val('f-q2'))  return alert('Por favor describe cómo te sientes ahora.');
+      if (!selectedTime) return alert('Por favor indica cuánto tiempo llevas cargando esto.');
       showStep(2);
     } else if (from === 2) {
-      if (!val('f-q3')) return alert('Por favor describe qué quieres lograr.');
-      fillSummary();
+      if (!val('f-qbelief'))     return alert('Por favor escribe la frase que más se repite en tu cabeza.');
+      if (!selectedBeliefOrigin) return alert('Por favor indica cuándo crees que empezaste a creer eso.');
       showStep(3);
+    } else if (from === 3) {
+      if (!val('f-q3'))      return alert('Por favor describe quién quieres ser.');
+      if (!val('f-q3vision')) return alert('Por favor describe cómo se ve la versión de ti que ya superó esto.');
+      fillSummary();
+      showStep(4);
     }
   }
 
   function prevStep(from) { showStep(from - 1); }
 
   function fillSummary() {
-    document.getElementById('s-name').textContent      = val('f-name');
-    document.getElementById('s-email').textContent     = val('f-email');
-    document.getElementById('s-gender').textContent    = selectedVoice === 'male' ? 'Masculina' : 'Femenina';
-    document.getElementById('s-q1').textContent        = val('f-q1');
-    document.getElementById('s-q2').textContent        = val('f-q2');
-    document.getElementById('s-q3').textContent        = val('f-q3');
-    document.getElementById('s-intensity').textContent = (document.getElementById('f-intensity')?.value || '7') + ' / 10';
+    document.getElementById('s-name').textContent     = val('f-name');
+    document.getElementById('s-email').textContent    = val('f-email');
+    document.getElementById('s-gender').textContent   = selectedVoice === 'male' ? 'Masculina' : 'Femenina';
+    document.getElementById('s-q1').textContent       = val('f-q1');
+    document.getElementById('s-q2').textContent       = val('f-q2');
+    document.getElementById('s-qtime').textContent    = selectedTime;
+    document.getElementById('s-qbelief').textContent  = val('f-qbelief');
+    document.getElementById('s-q3').textContent       = val('f-q3');
+    document.getElementById('s-q3vision').textContent = val('f-q3vision');
   }
 
   // ─── Submit order ────────────────────────────
   async function submitOrder() {
-    const btn    = document.getElementById('btn-pay');
-    const errEl  = document.getElementById('pay-error');
+    const btn   = document.getElementById('btn-pay');
+    const errEl = document.getElementById('pay-error');
     errEl.style.display = 'none';
 
     const payload = {
-      name:      val('f-name'),
-      email:     val('f-email'),
-      gender:    selectedVoice,
-      q1:        val('f-q1'),
-      q2:        val('f-q2'),
-      q3:        val('f-q3'),
-      intensity: parseInt(document.getElementById('f-intensity')?.value || '7', 10)
+      name:          val('f-name'),
+      email:         val('f-email'),
+      gender:        selectedVoice,
+      q1:            val('f-q1'),
+      q2:            val('f-q2'),
+      qtime:         selectedTime,
+      qbelief:       val('f-qbelief'),
+      qbelieforigin: selectedBeliefOrigin,
+      q3:            val('f-q3'),
+      q3vision:      val('f-q3vision')
     };
 
     btn.disabled = true;
