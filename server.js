@@ -190,7 +190,7 @@ Escribe SOLO el guion, sin títulos ni explicaciones adicionales. Listo para ser
 // ============================================
 async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId }) {
   await resendClient.emails.send({
-    from: 'Despertar ID™ <hipnosis@tu-dominio.com>',
+    from: 'Despertar ID™ <hipnosis@qrise.co>',
     to: email,
     subject: `${name}, tu hipnosis personalizada está lista`,
     html: `
