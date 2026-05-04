@@ -1,0 +1,21 @@
+{
+  "name": "despertar-id-backend",
+  "version": "1.0.0",
+  "description": "Backend para hipnosis personalizadas automatizadas — Despertar ID™",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "resend": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
