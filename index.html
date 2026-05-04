@@ -296,6 +296,33 @@
     .price-summary .big { font-size: 50px; font-weight: 200; color: var(--gold); line-height: 1; }
     .price-summary .note { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
+    /* Voice selector */
+    .voice-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .voice-opt {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 12px;
+      text-align: center;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      width: 100%;
+    }
+    .voice-opt:hover { border-color: var(--gold); color: var(--text); }
+    .voice-opt.selected {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+      color: var(--gold);
+    }
+    .voice-opt .voice-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+    .voice-opt .voice-label { font-size: 13px; letter-spacing: 0.05em; }
+
     /* Error */
     .form-error {
       background: rgba(239,68,68,0.09);
@@ -463,6 +490,19 @@
             <label for="f-email">Tu email</label>
             <input type="email" id="f-email" placeholder="Aquí recibirás tu audio" autocomplete="email">
           </div>
+          <div class="field">
+            <label>Voz del guía</label>
+            <div class="voice-selector">
+              <button type="button" class="voice-opt" id="voice-male" onclick="selectVoice('male')">
+                <span class="voice-icon">♂</span>
+                <span class="voice-label">Masculina</span>
+              </button>
+              <button type="button" class="voice-opt" id="voice-female" onclick="selectVoice('female')">
+                <span class="voice-icon">♀</span>
+                <span class="voice-label">Femenina</span>
+              </button>
+            </div>
+          </div>
           <div class="form-nav">
             <button class="btn-next" onclick="nextStep(0)">Continuar →</button>
           </div>
@@ -515,6 +555,7 @@
           <div id="summary-rows">
             <div class="summary-row"><div class="summary-lbl">Nombre</div><div class="summary-val" id="s-name"></div></div>
             <div class="summary-row"><div class="summary-lbl">Email</div><div class="summary-val" id="s-email"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Voz</div><div class="summary-val" id="s-gender"></div></div>
             <div class="summary-row"><div class="summary-lbl">Quiero cambiar</div><div class="summary-val" id="s-q1"></div></div>
             <div class="summary-row"><div class="summary-lbl">Me siento ahora</div><div class="summary-val" id="s-q2"></div></div>
             <div class="summary-row"><div class="summary-lbl">Quiero lograr</div><div class="summary-val" id="s-q3"></div></div>
@@ -622,6 +663,13 @@
 
   // ─── Multi-step form ─────────────────────────
   let step = 0;
+  let selectedVoice = '';
+
+  function selectVoice(gender) {
+    selectedVoice = gender;
+    document.getElementById('voice-male').classList.toggle('selected', gender === 'male');
+    document.getElementById('voice-female').classList.toggle('selected', gender === 'female');
+  }
 
   function updateProgress() {
     ['d0','d1','d2','d3'].forEach((id, i) => {
@@ -644,6 +692,7 @@
     if (from === 0) {
       if (!val('f-name'))                           return alert('Por favor ingresa tu nombre.');
       if (!val('f-email') || !val('f-email').includes('@')) return alert('Por favor ingresa un email válido.');
+      if (!selectedVoice)                           return alert('Por favor elige la voz del guía.');
       showStep(1);
     } else if (from === 1) {
       if (!val('f-q1')) return alert('Por favor describe qué quieres cambiar.');
@@ -661,6 +710,7 @@
   function fillSummary() {
     document.getElementById('s-name').textContent      = val('f-name');
     document.getElementById('s-email').textContent     = val('f-email');
+    document.getElementById('s-gender').textContent    = selectedVoice === 'male' ? 'Masculina' : 'Femenina';
     document.getElementById('s-q1').textContent        = val('f-q1');
     document.getElementById('s-q2').textContent        = val('f-q2');
     document.getElementById('s-q3').textContent        = val('f-q3');
@@ -676,6 +726,7 @@
     const payload = {
       name:      val('f-name'),
       email:     val('f-email'),
+      gender:    selectedVoice,
       q1:        val('f-q1'),
       q2:        val('f-q2'),
       q3:        val('f-q3'),

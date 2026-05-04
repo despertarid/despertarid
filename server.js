@@ -41,10 +41,14 @@ const orders = new Map();
 // PASO 1: Recibir formulario y crear orden
 // ============================================
 app.post('/api/order/create', async (req, res) => {
-  const { name, email, q1, q2, q3, intensity } = req.body;
+  const { name, email, gender, q1, q2, q3, intensity } = req.body;
 
-  if (!name || !email || !q1 || !q2 || !q3 || !intensity) {
+  if (!name || !email || !gender || !q1 || !q2 || !q3 || !intensity) {
     return res.status(400).json({ error: 'Faltan campos requeridos.' });
+  }
+
+  if (!['male', 'female'].includes(gender)) {
+    return res.status(400).json({ error: 'El campo gender debe ser "male" o "female".' });
   }
 
   // Crear ID único para esta orden
@@ -55,6 +59,7 @@ app.post('/api/order/create', async (req, res) => {
     id: orderId,
     name,
     email,
+    gender,
     q1, q2, q3,
     intensity,
     status: 'pending_payment',
@@ -118,7 +123,7 @@ app.post('/api/paypal/webhook', async (req, res) => {
 // PASO 3: Generar hipnosis + audio + enviar
 // ============================================
 async function processHypnosis(order) {
-  const { id, name, email, q1, q2, q3, intensity } = order;
+  const { id, name, email, gender, q1, q2, q3, intensity } = order;
 
   console.log(`[${id}] Iniciando generación para ${email}`);
 
@@ -129,7 +134,7 @@ async function processHypnosis(order) {
 
   // 3b. Convertir guion a audio con ElevenLabs
   console.log(`[${id}] Convirtiendo a audio con ElevenLabs...`);
-  const audioBuffer = await generateHypnosisAudio(script);
+  const audioBuffer = await generateHypnosisAudio(script, gender);
 
   // 3c. Enviar email con el audio adjunto
   console.log(`[${id}] Enviando email a ${email}...`);
