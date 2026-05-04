@@ -24,14 +24,17 @@ const BINAURAL_PATH      = join(__dirname, 'binaural.mp3');
  * La voz suena clara encima de las ondas al 10% de volumen.
  * El resultado tiene la misma duración que la hipnosis.
  * @param {string} script
+ * @param {'male'|'female'} gender
  * @returns {Buffer} MP3 final mezclado
  */
-export async function generateHypnosisAudio(script) {
-  const apiKey  = process.env.ELEVENLABS_API_KEY;
-  const voiceId = process.env.ELEVENLABS_VOICE_ID;
+export async function generateHypnosisAudio(script, gender) {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const voiceId = gender === 'male'
+    ? (process.env.ELEVENLABS_VOICE_ID_MALE   || process.env.ELEVENLABS_VOICE_ID)
+    : (process.env.ELEVENLABS_VOICE_ID_FEMALE || process.env.ELEVENLABS_VOICE_ID);
 
   if (!apiKey || !voiceId) {
-    throw new Error('Faltan ELEVENLABS_API_KEY o ELEVENLABS_VOICE_ID en las variables de entorno.');
+    throw new Error('Faltan ELEVENLABS_API_KEY o las variables de voz en las variables de entorno.');
   }
 
   const chunks       = splitScript(script, 4500);
