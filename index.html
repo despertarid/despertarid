@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Despertar ID™ — Hipnosis personalizada</title>
-  <meta name="description" content="Responde 5 preguntas. Recibe en tu email un audio de hipnosis creado solo para ti. $27, pago único.">
+  <meta name="description" content="Responde preguntas honestas. Recibe en tu email un audio de hipnosis creado solo para ti. $27, pago único.">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:       #0c0a14;
-      --surface:  #131020;
-      --surface2: #1a1628;
-      --border:   #231f35;
+      --bg:       #0A0A0F;
+      --surface:  #111118;
+      --surface2: #1A1A2E;
+      --border:   #23233a;
       --gold:     #c8a94a;
-      --gold-dim: rgba(200,169,74,0.12);
+      --gold-dim: rgba(200,169,74,0.15);
       --text:     #e9e2d8;
       --muted:    #7d7669;
       --r:        12px;
@@ -172,20 +172,21 @@
     @media (max-width: 480px) { .form-card { padding: 24px 18px; } }
 
     .form-step { display: none; }
-    .form-step.active { display: block; }
+    .form-step.active { display: block; padding-bottom: 90px; }
 
-    .step-title { font-size: 20px; color: #f2ece0; margin-bottom: 6px; font-weight: 400; }
-    .step-hint  { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .step-title { font-size: 26px; color: #ffffff; margin-bottom: 8px; font-weight: 600; }
+    .step-hint  { font-size: 17px; color: #9090A0; margin-bottom: 32px; }
 
     /* Fields */
     .field { margin-bottom: 20px; }
     label {
       display: block;
-      font-size: 12px;
-      letter-spacing: 0.07em;
+      font-size: 13px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 10px;
     }
     input[type="text"],
     input[type="email"],
@@ -208,52 +209,115 @@
     textarea { min-height: 88px; }
     ::placeholder { color: #4a4540; }
 
-    /* Intensity */
-    .intensity-display {
-      font-size: 44px;
-      font-weight: 200;
-      color: var(--gold);
+    /* Voice selector */
+    .voice-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .voice-opt {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 12px;
       text-align: center;
-      line-height: 1;
-      margin-bottom: 14px;
-    }
-    .intensity-display sub { font-size: 18px; color: var(--muted); vertical-align: middle; }
-    input[type="range"] {
-      width: 100%;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 3px;
-      background: var(--border);
-      border-radius: 3px;
-      outline: none;
       cursor: pointer;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px; height: 20px;
-      background: var(--gold);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
-    input[type="range"]::-moz-range-thumb {
-      width: 20px; height: 20px;
-      background: var(--gold);
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-    }
-    .intensity-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
+      font-family: inherit;
       color: var(--muted);
-      margin-top: 8px;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      width: 100%;
     }
+    .voice-opt:hover { border-color: var(--gold); color: var(--text); }
+    .voice-opt.selected {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+      color: var(--gold);
+    }
+    .voice-opt .voice-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+    .voice-opt .voice-label { font-size: 13px; letter-spacing: 0.05em; }
+
+    /* Choice selector */
+    .choice-selector { display: flex; flex-direction: column; gap: 12px; }
+
+    @keyframes selectPop {
+      0%   { transform: scale(0.98); }
+      100% { transform: scale(1.0); }
+    }
+
+    .choice-opt {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      min-height: 56px;
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--muted);
+      transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .choice-opt:hover { border-color: var(--gold); color: var(--text); }
+    .choice-opt:active { transform: scale(0.98); }
+    .choice-opt.selected {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+      color: var(--gold);
+      animation: selectPop 0.15s ease-out;
+    }
+
+    /* Open text option */
+    .choice-opt-open {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      min-height: 56px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .choice-opt-open:focus-within { border-color: var(--gold); }
+    .choice-opt-open-prominent { border-color: rgba(200,169,74,0.25); }
+    .pencil-icon { color: var(--muted); font-size: 14px; padding-top: 3px; flex-shrink: 0; }
+    .open-field {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+      overflow: hidden;
+      min-height: 22px;
+    }
+    .open-field::placeholder { color: #4a4540; }
+    .open-field-prominent { font-size: 15px; }
 
     /* Nav */
     .form-nav { display: flex; gap: 12px; margin-top: 28px; align-items: center; }
+    .form-step.active .form-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      z-index: 50;
+      margin-top: 0;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+    }
+    .form-step.active .form-nav .btn-next,
+    .form-step.active .form-nav .btn-back {
+      max-width: none;
+    }
     .btn-back {
       background: transparent;
       border: 1px solid var(--border);
@@ -264,6 +328,7 @@
       cursor: pointer;
       font-family: inherit;
       transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
     }
     .btn-back:hover { border-color: var(--muted); color: var(--text); }
     .btn-next {
@@ -289,56 +354,11 @@
     }
     .summary-row:last-child { border-bottom: none; }
     .summary-lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
-    .summary-val { font-size: 15px; }
+    .summary-val { font-size: 14px; line-height: 1.5; }
 
     .price-summary { text-align: center; padding: 24px 0 8px; }
     .price-summary .big { font-size: 50px; font-weight: 200; color: var(--gold); line-height: 1; }
     .price-summary .note { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-    /* Voice selector */
-    .voice-selector {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .voice-opt {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 18px 12px;
-      text-align: center;
-      cursor: pointer;
-      font-family: inherit;
-      color: var(--muted);
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-      width: 100%;
-    }
-    .voice-opt:hover { border-color: var(--gold); color: var(--text); }
-    .voice-opt.selected {
-      border-color: var(--gold);
-      background: var(--gold-dim);
-      color: var(--gold);
-    }
-    .voice-opt .voice-icon { font-size: 26px; display: block; margin-bottom: 6px; }
-    .voice-opt .voice-label { font-size: 13px; letter-spacing: 0.05em; }
-
-    /* Choice selector */
-    .choice-selector { display: flex; flex-direction: column; gap: 8px; }
-    .choice-opt {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      text-align: left;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 14px;
-      color: var(--muted);
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-      width: 100%;
-    }
-    .choice-opt:hover { border-color: var(--gold); color: var(--text); }
-    .choice-opt.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
 
     /* Error */
     .form-error {
@@ -492,11 +512,14 @@
         <div class="pdot" id="d2"></div>
         <div class="pdot" id="d3"></div>
         <div class="pdot" id="d4"></div>
+        <div class="pdot" id="d5"></div>
+        <div class="pdot" id="d6"></div>
+        <div class="pdot" id="d7"></div>
       </div>
 
       <div class="form-card">
 
-        <!-- PASO 1: Nombre + Email -->
+        <!-- PASO 0: Datos básicos -->
         <div class="form-step active" id="step-0">
           <h3 class="step-title">Comencemos</h3>
           <p class="step-hint">Usaré tu nombre durante la sesión de hipnosis.</p>
@@ -526,25 +549,23 @@
           </div>
         </div>
 
-        <!-- PASO 2: Q1 + Q2 -->
+        <!-- PASO 1: ¿Qué quieres cambiar? -->
         <div class="form-step" id="step-1">
-          <h3 class="step-title">¿Dónde estás hoy?</h3>
-          <p class="step-hint">Cuanto más específico/a seas, mejor funciona el audio.</p>
+          <h3 class="step-title">¿Qué quieres cambiar?</h3>
+          <p class="step-hint">Elige todo lo que resuene contigo.</p>
           <div class="field">
-            <label for="f-q1">¿Qué quieres cambiar o soltar?</label>
-            <textarea id="f-q1" placeholder="Ej: el miedo a fracasar, la procrastinación, la ansiedad social..."></textarea>
-          </div>
-          <div class="field">
-            <label for="f-q2">¿Cómo te sientes con esto ahora mismo?</label>
-            <textarea id="f-q2" placeholder="Ej: frustrado/a, atrapado/a, cansado/a de repetir el mismo patrón..."></textarea>
-          </div>
-          <div class="field">
-            <label>¿Cuánto tiempo llevas cargando esto?</label>
+            <label>¿Qué quieres cambiar o soltar?</label>
             <div class="choice-selector">
-              <button type="button" class="choice-opt" onclick="selectTime(this)">Menos de un año</button>
-              <button type="button" class="choice-opt" onclick="selectTime(this)">Entre uno y cinco años</button>
-              <button type="button" class="choice-opt" onclick="selectTime(this)">Más de cinco años</button>
-              <button type="button" class="choice-opt" onclick="selectTime(this)">Toda mi vida</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q1')">No me siento suficiente</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q1')">Me bloqueo cuando quiero avanzar</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q1')">Sé lo que tengo que hacer pero no lo hago</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q1')">Tengo miedo de lo que piensan los demás</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q1')">No creo que merezco lo que quiero</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q1')">Me saboteo cuando las cosas van bien</button>
+              <div class="choice-opt-open">
+                <span class="pencil-icon">✏</span>
+                <textarea class="open-field" id="f-q1-open" placeholder="Agrega tu respuesta personal…" rows="1" oninput="autoResize(this)"></textarea>
+              </div>
             </div>
           </div>
           <div class="form-nav">
@@ -553,21 +574,23 @@
           </div>
         </div>
 
-        <!-- PASO 3: ¿Qué te dices cuando fallas? -->
+        <!-- PASO 2: ¿Cómo te sientes? -->
         <div class="form-step" id="step-2">
-          <h3 class="step-title">¿Qué te dices cuando fallas?</h3>
-          <p class="step-hint">Esta es la parte más importante. Sé honesto contigo.</p>
+          <h3 class="step-title">¿Cómo te sientes con esto?</h3>
+          <p class="step-hint">Sé honesto/a. Nadie más va a leer esto.</p>
           <div class="field">
-            <label for="f-qbelief">La frase que más se repite en tu cabeza</label>
-            <textarea id="f-qbelief" placeholder="Ej: no soy suficiente, siempre me pasa lo mismo, no soy capaz…"></textarea>
-          </div>
-          <div class="field">
-            <label>¿Cuándo crees que empezaste a creer eso?</label>
+            <label>¿Cómo te sientes ahora mismo?</label>
             <div class="choice-selector">
-              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">De niño, algo que me dijeron o me pasó</button>
-              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">En una relación o experiencia difícil</button>
-              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">En el trabajo o al fracasar en algo</button>
-              <button type="button" class="choice-opt" onclick="selectBeliefOrigin(this)">No lo sé, siempre ha estado ahí</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q2')">Frustrado y cansado de repetir el mismo patrón</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q2')">Atrapado, como si no pudiera avanzar</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q2')">Avergonzado de seguir en el mismo lugar</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q2')">Ansioso cuando pienso en cambiar</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q2')">Vacío, como si algo faltara</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q2')">Enojado conmigo mismo</button>
+              <div class="choice-opt-open">
+                <span class="pencil-icon">✏</span>
+                <textarea class="open-field" id="f-q2-open" placeholder="Agrega tu respuesta personal…" rows="1" oninput="autoResize(this)"></textarea>
+              </div>
             </div>
           </div>
           <div class="form-nav">
@@ -576,26 +599,105 @@
           </div>
         </div>
 
-        <!-- PASO 4: ¿A dónde quieres ir? -->
+        <!-- PASO 3: ¿Cuánto tiempo? -->
         <div class="form-step" id="step-3">
-          <h3 class="step-title">¿A dónde quieres ir?</h3>
-          <p class="step-hint">Describe tu estado ideal con la mayor claridad posible.</p>
+          <h3 class="step-title">¿Cuánto tiempo llevas cargando esto?</h3>
+          <p class="step-hint">No hay respuesta correcta. Solo la tuya.</p>
           <div class="field">
-            <label for="f-q3">¿Quién quieres ser / qué quieres lograr?</label>
-            <textarea id="f-q3" placeholder="Ej: sentirme seguro/a al hablar en público, tomar acción sin paralizarme..."></textarea>
-          </div>
-          <div class="field">
-            <label for="f-q3vision">¿Cómo se ve la versión de ti que ya superó esto?</label>
-            <textarea id="f-q3vision" placeholder="Ej: toma decisiones sin miedo, confía en sí misma, no necesita aprobación de nadie…"></textarea>
+            <label>Tiempo cargando esto</label>
+            <div class="choice-selector">
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qtime')">Menos de un año</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qtime')">Entre uno y cinco años</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qtime')">Más de cinco años</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qtime')">Toda mi vida, desde que recuerdo</button>
+              <div class="choice-opt-open">
+                <span class="pencil-icon">✏</span>
+                <textarea class="open-field" id="f-qtime-open" placeholder="Agrega tu respuesta personal…" rows="1" oninput="autoResize(this)"></textarea>
+              </div>
+            </div>
           </div>
           <div class="form-nav">
             <button class="btn-back" onclick="prevStep(3)">← Volver</button>
-            <button class="btn-next" onclick="nextStep(3)">Ver resumen →</button>
+            <button class="btn-next" onclick="nextStep(3)">Continuar →</button>
           </div>
         </div>
 
-        <!-- PASO 5: Resumen + Pago -->
+        <!-- PASO 4: La frase que se repite -->
         <div class="form-step" id="step-4">
+          <h3 class="step-title">¿Qué te dices cuando fallas?</h3>
+          <p class="step-hint">Esta es la parte más importante. Sé honesto contigo.</p>
+          <div class="field">
+            <label>La frase que más se repite en tu cabeza</label>
+            <div class="choice-selector">
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelief')">No soy suficiente</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelief')">Siempre me pasa lo mismo</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelief')">No soy capaz</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelief')">No merezco que me vaya bien</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelief')">Si avanzo algo malo va a pasar</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelief')">Soy diferente, esto no funciona para mí</button>
+              <div class="choice-opt-open choice-opt-open-prominent">
+                <span class="pencil-icon">✏</span>
+                <textarea class="open-field open-field-prominent" id="f-qbelief-open" placeholder="Escribe la frase exacta que escuchas tú…" rows="1" oninput="autoResize(this)"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(4)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(4)">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- PASO 5: ¿Cuándo empezaste? -->
+        <div class="form-step" id="step-5">
+          <h3 class="step-title">¿Cuándo crees que empezaste a creer eso?</h3>
+          <p class="step-hint">Elige lo que más se acerque a tu historia.</p>
+          <div class="field">
+            <label>Origen de la creencia</label>
+            <div class="choice-selector">
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelieforigin')">De niño, algo que me dijeron o me pasó</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelieforigin')">En una relación que me lastimó</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelieforigin')">Cuando fallé en algo importante</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelieforigin')">En el trabajo o al intentar crecer</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'qbelieforigin')">No lo sé, siempre ha estado ahí</button>
+              <div class="choice-opt-open">
+                <span class="pencil-icon">✏</span>
+                <textarea class="open-field" id="f-qbelieforigin-open" placeholder="Agrega tu respuesta personal…" rows="1" oninput="autoResize(this)"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(5)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(5)">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- PASO 6: ¿Quién quieres ser? -->
+        <div class="form-step" id="step-6">
+          <h3 class="step-title">¿Quién quieres ser?</h3>
+          <p class="step-hint">Describe la versión de ti que ya superó esto.</p>
+          <div class="field">
+            <label>La versión de ti que ya lo superó</label>
+            <div class="choice-selector">
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q3')">Alguien que toma decisiones sin miedo ni duda</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q3')">Alguien que confía en sí mismo sin necesitar aprobación</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q3')">Alguien que avanza aunque sienta miedo</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q3')">Alguien que sabe que merece lo bueno y lo recibe</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q3')">Alguien en paz con quien es</button>
+              <button type="button" class="choice-opt" onclick="toggleOpt(this,'q3')">Alguien que actúa desde la calma, no desde el pánico</button>
+              <div class="choice-opt-open">
+                <span class="pencil-icon">✏</span>
+                <textarea class="open-field" id="f-q3vision-open" placeholder="Describe tu versión ideal con tus palabras…" rows="1" oninput="autoResize(this)"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(6)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(6)">Ver resumen →</button>
+          </div>
+        </div>
+
+        <!-- PASO 7: Resumen + Pago -->
+        <div class="form-step" id="step-7">
           <h3 class="step-title">Resumen de tu hipnosis</h3>
           <p class="step-hint">Revisa antes de ir al pago.</p>
 
@@ -607,8 +709,8 @@
             <div class="summary-row"><div class="summary-lbl">Me siento ahora</div><div class="summary-val" id="s-q2"></div></div>
             <div class="summary-row"><div class="summary-lbl">Tiempo cargando esto</div><div class="summary-val" id="s-qtime"></div></div>
             <div class="summary-row"><div class="summary-lbl">Frase que se repite</div><div class="summary-val" id="s-qbelief"></div></div>
-            <div class="summary-row"><div class="summary-lbl">Quiero lograr</div><div class="summary-val" id="s-q3"></div></div>
-            <div class="summary-row"><div class="summary-lbl">La versión superada</div><div class="summary-val" id="s-q3vision"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Cuándo empezó</div><div class="summary-val" id="s-qbelieforigin"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Quiero ser</div><div class="summary-val" id="s-q3"></div></div>
           </div>
 
           <div class="price-summary">
@@ -618,7 +720,7 @@
 
           <div class="form-error" id="pay-error"></div>
           <div class="form-nav">
-            <button class="btn-back" onclick="prevStep(4)">← Editar</button>
+            <button class="btn-back" onclick="prevStep(7)">← Editar</button>
             <button class="btn-next" id="btn-pay" onclick="submitOrder()">
               Pagar con PayPal →
             </button>
@@ -713,8 +815,10 @@
   // ─── Multi-step form ─────────────────────────
   let step = 0;
   let selectedVoice = '';
-  let selectedTime = '';
-  let selectedBeliefOrigin = '';
+  const selections = {
+    q1: new Set(), q2: new Set(), qtime: new Set(),
+    qbelief: new Set(), qbelieforigin: new Set(), q3: new Set()
+  };
 
   function selectVoice(gender) {
     selectedVoice = gender;
@@ -722,20 +826,34 @@
     document.getElementById('voice-female').classList.toggle('selected', gender === 'female');
   }
 
-  function selectTime(btn) {
-    selectedTime = btn.textContent.trim();
-    btn.closest('.choice-selector').querySelectorAll('.choice-opt').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
+  function toggleOpt(btn, key) {
+    const text = btn.textContent.trim();
+    if (selections[key].has(text)) {
+      selections[key].delete(text);
+      btn.classList.remove('selected');
+    } else {
+      selections[key].add(text);
+      btn.classList.add('selected');
+    }
   }
 
-  function selectBeliefOrigin(btn) {
-    selectedBeliefOrigin = btn.textContent.trim();
-    btn.closest('.choice-selector').querySelectorAll('.choice-opt').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
+  function getVal(key, openId) {
+    const opts = [...selections[key]];
+    const custom = (document.getElementById(openId)?.value || '').trim();
+    return [...opts, custom].filter(Boolean).join('; ');
+  }
+
+  function hasVal(key, openId) {
+    return selections[key].size > 0 || (document.getElementById(openId)?.value || '').trim().length > 0;
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
   }
 
   function updateProgress() {
-    ['d0','d1','d2','d3','d4'].forEach((id, i) => {
+    ['d0','d1','d2','d3','d4','d5','d6','d7'].forEach((id, i) => {
       const el = document.getElementById(id);
       if (!el) return;
       el.className = 'pdot' + (i < step ? ' done' : i === step ? ' active' : '');
@@ -747,6 +865,8 @@
     document.getElementById('step-' + n).classList.add('active');
     step = n;
     updateProgress();
+    const formEl = document.getElementById('formulario');
+    if (formEl) window.scrollTo({ top: formEl.offsetTop - 60, behavior: 'smooth' });
   }
 
   function val(id) { return (document.getElementById(id)?.value || '').trim(); }
@@ -758,34 +878,40 @@
       if (!selectedVoice)                                    return alert('Por favor elige la voz del guía.');
       showStep(1);
     } else if (from === 1) {
-      if (!val('f-q1'))  return alert('Por favor describe qué quieres cambiar.');
-      if (!val('f-q2'))  return alert('Por favor describe cómo te sientes ahora.');
-      if (!selectedTime) return alert('Por favor indica cuánto tiempo llevas cargando esto.');
+      if (!hasVal('q1','f-q1-open')) return alert('Por favor elige al menos una opción o escribe tu respuesta.');
       showStep(2);
     } else if (from === 2) {
-      if (!val('f-qbelief'))     return alert('Por favor escribe la frase que más se repite en tu cabeza.');
-      if (!selectedBeliefOrigin) return alert('Por favor indica cuándo crees que empezaste a creer eso.');
+      if (!hasVal('q2','f-q2-open')) return alert('Por favor elige al menos una opción o escribe tu respuesta.');
       showStep(3);
     } else if (from === 3) {
-      if (!val('f-q3'))      return alert('Por favor describe quién quieres ser.');
-      if (!val('f-q3vision')) return alert('Por favor describe cómo se ve la versión de ti que ya superó esto.');
-      fillSummary();
+      if (!hasVal('qtime','f-qtime-open')) return alert('Por favor indica cuánto tiempo llevas cargando esto.');
       showStep(4);
+    } else if (from === 4) {
+      if (!hasVal('qbelief','f-qbelief-open')) return alert('Por favor elige una opción o escribe la frase que se repite en tu cabeza.');
+      showStep(5);
+    } else if (from === 5) {
+      if (!hasVal('qbelieforigin','f-qbelieforigin-open')) return alert('Por favor indica cuándo crees que empezaste a creer eso.');
+      showStep(6);
+    } else if (from === 6) {
+      if (!hasVal('q3','f-q3vision-open')) return alert('Por favor describe quién quieres ser.');
+      fillSummary();
+      showStep(7);
     }
   }
 
   function prevStep(from) { showStep(from - 1); }
 
   function fillSummary() {
-    document.getElementById('s-name').textContent     = val('f-name');
-    document.getElementById('s-email').textContent    = val('f-email');
-    document.getElementById('s-gender').textContent   = selectedVoice === 'male' ? 'Masculina' : 'Femenina';
-    document.getElementById('s-q1').textContent       = val('f-q1');
-    document.getElementById('s-q2').textContent       = val('f-q2');
-    document.getElementById('s-qtime').textContent    = selectedTime;
-    document.getElementById('s-qbelief').textContent  = val('f-qbelief');
-    document.getElementById('s-q3').textContent       = val('f-q3');
-    document.getElementById('s-q3vision').textContent = val('f-q3vision');
+    const q3combined = getVal('q3', 'f-q3vision-open');
+    document.getElementById('s-name').textContent          = val('f-name');
+    document.getElementById('s-email').textContent         = val('f-email');
+    document.getElementById('s-gender').textContent        = selectedVoice === 'male' ? 'Masculina' : 'Femenina';
+    document.getElementById('s-q1').textContent            = getVal('q1','f-q1-open');
+    document.getElementById('s-q2').textContent            = getVal('q2','f-q2-open');
+    document.getElementById('s-qtime').textContent         = getVal('qtime','f-qtime-open');
+    document.getElementById('s-qbelief').textContent       = getVal('qbelief','f-qbelief-open');
+    document.getElementById('s-qbelieforigin').textContent = getVal('qbelieforigin','f-qbelieforigin-open');
+    document.getElementById('s-q3').textContent            = q3combined;
   }
 
   // ─── Submit order ────────────────────────────
@@ -794,17 +920,20 @@
     const errEl = document.getElementById('pay-error');
     errEl.style.display = 'none';
 
+    const q3combined = getVal('q3', 'f-q3vision-open');
+    const q3vision   = (document.getElementById('f-q3vision-open')?.value || '').trim();
+
     const payload = {
       name:          val('f-name'),
       email:         val('f-email'),
       gender:        selectedVoice,
-      q1:            val('f-q1'),
-      q2:            val('f-q2'),
-      qtime:         selectedTime,
-      qbelief:       val('f-qbelief'),
-      qbelieforigin: selectedBeliefOrigin,
-      q3:            val('f-q3'),
-      q3vision:      val('f-q3vision')
+      q1:            getVal('q1','f-q1-open'),
+      q2:            getVal('q2','f-q2-open'),
+      qtime:         getVal('qtime','f-qtime-open'),
+      qbelief:       getVal('qbelief','f-qbelief-open'),
+      qbelieforigin: getVal('qbelieforigin','f-qbelieforigin-open'),
+      q3:            q3combined,
+      q3vision:      q3vision || q3combined
     };
 
     btn.disabled = true;
@@ -878,7 +1007,7 @@
     document.getElementById('status-title').textContent =
       '¡Tu hipnosis está lista!';
     document.getElementById('status-desc').textContent =
-      'Ya enviamos el audio a tu email. Busca el mensaje con asunto "tu hipnosis personalizada está lista".';
+      'Ya enviamos el audio a tu email. Busca el mensaje con asunto "esto fue creado solo para ti".';
     document.getElementById('status-text').textContent = 'Audio enviado ✓';
 
     const dot = document.getElementById('sdot');
