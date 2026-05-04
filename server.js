@@ -22,7 +22,12 @@ const PORT = process.env.PORT || 3000;
 
 // ─── Clientes de servicios ───────────────────
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 5 });
-const resend = new Resend(process.env.RESEND_API_KEY);
+
+const resendApiKey = process.env.RESEND_API_KEY || 'missing_key';
+if (!process.env.RESEND_API_KEY) {
+  console.warn('ADVERTENCIA: Falta RESEND_API_KEY — el envío de emails fallará.');
+}
+const resend = new Resend(resendApiKey);
 
 // ─── Middleware ──────────────────────────────
 app.use(cors({ origin: '*' }));
