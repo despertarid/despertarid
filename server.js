@@ -11,6 +11,11 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Resend } from 'resend';
 import { generateHypnosisAudio } from './hypnosis.js';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +27,11 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // ─── Middleware ──────────────────────────────
 app.use(cors({ origin: '*' }));
 app.use(bodyParser.json());
+
+// ─── Frontend ────────────────────────────────
+app.get('/',          (req, res) => res.sendFile(join(__dirname, 'index.html')));
+app.get('/gracias',   (req, res) => res.sendFile(join(__dirname, 'index.html')));
+app.get('/cancelado', (req, res) => res.sendFile(join(__dirname, 'index.html')));
 
 // ─── Almacenamiento temporal de órdenes ─────
 // En producción: reemplazar con Firebase o Supabase
