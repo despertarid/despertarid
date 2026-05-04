@@ -168,13 +168,14 @@ INSTRUCCIONES PARA EL GUION:
    e) DESPERTAR (1 min): Salida suave y energizante
 
 REGLAS DE ESTILO:
+- El guion debe estar escrito en español latino, sin anglicismos ni palabras de otros idiomas
 - Sin tecnicismos ni palabras complicadas
-- Ritmo lento con pausas marcadas así: [pausa]
+- Ritmo lento con pausas naturales indicadas con puntos suspensivos ... Nunca escribas la palabra "pausa" ni uses corchetes
 - Frases cortas. Máximo 15 palabras por frase.
 - Repite los conceptos clave 2-3 veces con variaciones
 - Termina con una afirmación de identidad poderosa
 
-Escribe SOLO el guion, sin títulos ni explicaciones adicionales. Listo para ser narrado.`;
+Escribe SOLO el guion, sin títulos ni explicaciones adicionales. Listo para ser narrado en español latino.`;
 
   const response = await client.messages.create({
     model: 'claude-opus-4-5',
