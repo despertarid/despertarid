@@ -41,14 +41,18 @@ const orders = new Map();
 // PASO 1: Recibir formulario y crear orden
 // ============================================
 app.post('/api/order/create', async (req, res) => {
-  const { name, email, gender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = req.body;
+  const { name, email, clientGender, gender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = req.body;
 
-  if (!name || !email || !gender || !q1 || !q2 || !qtime || !qbelief || !qbelieforigin || !q3 || !q3vision) {
+  if (!name || !email || !clientGender || !gender || !q1 || !q2 || !qtime || !qbelief || !qbelieforigin || !q3 || !q3vision) {
     return res.status(400).json({ error: 'Faltan campos requeridos.' });
   }
 
   if (!['male', 'female'].includes(gender)) {
     return res.status(400).json({ error: 'El campo gender debe ser "male" o "female".' });
+  }
+
+  if (!['male', 'female'].includes(clientGender)) {
+    return res.status(400).json({ error: 'El campo clientGender debe ser "male" o "female".' });
   }
 
   // Crear ID único para esta orden
@@ -59,6 +63,7 @@ app.post('/api/order/create', async (req, res) => {
     id: orderId,
     name,
     email,
+    clientGender,
     gender,
     q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision,
     status: 'pending_payment',
@@ -122,13 +127,13 @@ app.post('/api/paypal/webhook', async (req, res) => {
 // PASO 3: Generar hipnosis + audio + enviar
 // ============================================
 async function processHypnosis(order) {
-  const { id, name, email, gender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = order;
+  const { id, name, email, clientGender, gender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = order;
 
   console.log(`[${id}] Iniciando generación para ${email}`);
 
   // 3a. Generar guion con Claude
   console.log(`[${id}] Generando guion con IA...`);
-  const script = await generateScript(anthropic, { name, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision });
+  const script = await generateScript(anthropic, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision });
   console.log('GUION GENERADO:\n' + script);
 
   // 3b. Convertir guion a audio con ElevenLabs
@@ -150,11 +155,13 @@ async function processHypnosis(order) {
 // ============================================
 // Generador de guion con Claude
 // ============================================
-async function generateScript(client, { name, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }) {
+async function generateScript(client, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }) {
+  const genLabel = clientGender === 'female' ? 'Femenino' : 'Masculino';
   const prompt = `Eres el creador de hipnosis de identidad del método Despertar ID™. Escribe un guion de hipnosis profundamente personalizado siguiendo la estructura de seis fases exacta que se detalla abajo.
 
 DATOS DEL CLIENTE:
 - Nombre: ${name}
+- Género del cliente: ${genLabel}
 - Qué quiere cambiar: ${q1}
 - Cómo se siente ahora: ${q2}
 - Tiempo cargando esto: ${qtime}
@@ -170,6 +177,7 @@ REGLAS GLOBALES DE ESTILO:
 - Pausas con puntos suspensivos ... Nunca escribas "pausa" ni uses corchetes.
 - Escribe SOLO el guion. Sin títulos de fase, sin notas, sin explicaciones.
 - Cada idea en su propia línea o con salto de línea.
+- Concordancia de género: el cliente es ${genLabel}. Todas las palabras con concordancia de género deben estar en ${clientGender === 'female' ? 'femenino' : 'masculino'} sin excepción en todas las fases. Palabras que cambian: tranquilo→tranquila, listo→lista, solo→sola, relajado→relajada, abierto→abierta, dispuesto→dispuesta, cansado→cansada, atrapado→atrapada, frustrado→frustrada, preparado→preparada, bienvenido→bienvenida, conectado→conectada. ${clientGender === 'female' ? 'Usa siempre la forma femenina de estas palabras.' : 'Usa siempre la forma masculina de estas palabras.'}
 
 ════════════════════════════════════════
 ESTRUCTURA EXACTA DEL GUION

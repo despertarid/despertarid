@@ -515,6 +515,7 @@
         <div class="pdot" id="d5"></div>
         <div class="pdot" id="d6"></div>
         <div class="pdot" id="d7"></div>
+        <div class="pdot" id="d8"></div>
       </div>
 
       <div class="form-card">
@@ -528,21 +529,19 @@
             <input type="text" id="f-name" placeholder="Ej: María" autocomplete="given-name">
           </div>
           <div class="field">
-            <label for="f-email">Tu email</label>
-            <input type="email" id="f-email" placeholder="Aquí recibirás tu audio" autocomplete="email">
-          </div>
-          <div class="field">
-            <label>Voz del guía</label>
+            <label>Tu género</label>
             <div class="voice-selector">
-              <button type="button" class="voice-opt" id="voice-male" onclick="selectVoice('male')">
-                <span class="voice-icon">♂</span>
-                <span class="voice-label">Masculina</span>
+              <button type="button" class="voice-opt" id="gender-male" onclick="selectClientGender('male')">
+                <span class="voice-label">Masculino</span>
               </button>
-              <button type="button" class="voice-opt" id="voice-female" onclick="selectVoice('female')">
-                <span class="voice-icon">♀</span>
-                <span class="voice-label">Femenina</span>
+              <button type="button" class="voice-opt" id="gender-female" onclick="selectClientGender('female')">
+                <span class="voice-label">Femenino</span>
               </button>
             </div>
+          </div>
+          <div class="field">
+            <label for="f-email">Tu email</label>
+            <input type="email" id="f-email" placeholder="Aquí recibirás tu audio" autocomplete="email">
           </div>
           <div class="form-nav">
             <button class="btn-next" onclick="nextStep(0)">Continuar →</button>
@@ -692,19 +691,42 @@
           </div>
           <div class="form-nav">
             <button class="btn-back" onclick="prevStep(6)">← Volver</button>
-            <button class="btn-next" onclick="nextStep(6)">Ver resumen →</button>
+            <button class="btn-next" onclick="nextStep(6)">Continuar →</button>
           </div>
         </div>
 
-        <!-- PASO 7: Resumen + Pago -->
+        <!-- PASO 7: Voz del guía -->
         <div class="form-step" id="step-7">
+          <h3 class="step-title">¿Con qué voz quieres escuchar tu hipnosis?</h3>
+          <p class="step-hint">Esta es la voz que va a guiarte durante los 21 días.</p>
+          <div class="field">
+            <div class="voice-selector">
+              <button type="button" class="voice-opt" id="voice-male" onclick="selectVoice('male')">
+                <span class="voice-icon">♂</span>
+                <span class="voice-label">Masculina</span>
+              </button>
+              <button type="button" class="voice-opt" id="voice-female" onclick="selectVoice('female')">
+                <span class="voice-icon">♀</span>
+                <span class="voice-label">Femenina</span>
+              </button>
+            </div>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="prevStep(7)">← Volver</button>
+            <button class="btn-next" onclick="nextStep(7)">Ver resumen →</button>
+          </div>
+        </div>
+
+        <!-- PASO 8: Resumen + Pago -->
+        <div class="form-step" id="step-8">
           <h3 class="step-title">Resumen de tu hipnosis</h3>
           <p class="step-hint">Revisa antes de ir al pago.</p>
 
           <div id="summary-rows">
             <div class="summary-row"><div class="summary-lbl">Nombre</div><div class="summary-val" id="s-name"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Género</div><div class="summary-val" id="s-clientgender"></div></div>
             <div class="summary-row"><div class="summary-lbl">Email</div><div class="summary-val" id="s-email"></div></div>
-            <div class="summary-row"><div class="summary-lbl">Voz</div><div class="summary-val" id="s-gender"></div></div>
+            <div class="summary-row"><div class="summary-lbl">Voz del guía</div><div class="summary-val" id="s-gender"></div></div>
             <div class="summary-row"><div class="summary-lbl">Quiero cambiar</div><div class="summary-val" id="s-q1"></div></div>
             <div class="summary-row"><div class="summary-lbl">Me siento ahora</div><div class="summary-val" id="s-q2"></div></div>
             <div class="summary-row"><div class="summary-lbl">Tiempo cargando esto</div><div class="summary-val" id="s-qtime"></div></div>
@@ -720,7 +742,7 @@
 
           <div class="form-error" id="pay-error"></div>
           <div class="form-nav">
-            <button class="btn-back" onclick="prevStep(7)">← Editar</button>
+            <button class="btn-back" onclick="prevStep(8)">← Editar</button>
             <button class="btn-next" id="btn-pay" onclick="submitOrder()">
               Pagar con PayPal →
             </button>
@@ -815,10 +837,17 @@
   // ─── Multi-step form ─────────────────────────
   let step = 0;
   let selectedVoice = '';
+  let selectedClientGender = '';
   const selections = {
     q1: new Set(), q2: new Set(), qtime: new Set(),
     qbelief: new Set(), qbelieforigin: new Set(), q3: new Set()
   };
+
+  function selectClientGender(g) {
+    selectedClientGender = g;
+    document.getElementById('gender-male').classList.toggle('selected', g === 'male');
+    document.getElementById('gender-female').classList.toggle('selected', g === 'female');
+  }
 
   function selectVoice(gender) {
     selectedVoice = gender;
@@ -853,7 +882,7 @@
   }
 
   function updateProgress() {
-    ['d0','d1','d2','d3','d4','d5','d6','d7'].forEach((id, i) => {
+    ['d0','d1','d2','d3','d4','d5','d6','d7','d8'].forEach((id, i) => {
       const el = document.getElementById(id);
       if (!el) return;
       el.className = 'pdot' + (i < step ? ' done' : i === step ? ' active' : '');
@@ -874,8 +903,8 @@
   function nextStep(from) {
     if (from === 0) {
       if (!val('f-name'))                                    return alert('Por favor ingresa tu nombre.');
+      if (!selectedClientGender)                             return alert('Por favor indica tu género.');
       if (!val('f-email') || !val('f-email').includes('@')) return alert('Por favor ingresa un email válido.');
-      if (!selectedVoice)                                    return alert('Por favor elige la voz del guía.');
       showStep(1);
     } else if (from === 1) {
       if (!hasVal('q1','f-q1-open')) return alert('Por favor elige al menos una opción o escribe tu respuesta.');
@@ -894,8 +923,11 @@
       showStep(6);
     } else if (from === 6) {
       if (!hasVal('q3','f-q3vision-open')) return alert('Por favor describe quién quieres ser.');
-      fillSummary();
       showStep(7);
+    } else if (from === 7) {
+      if (!selectedVoice) return alert('Por favor elige la voz del guía.');
+      fillSummary();
+      showStep(8);
     }
   }
 
@@ -904,6 +936,7 @@
   function fillSummary() {
     const q3combined = getVal('q3', 'f-q3vision-open');
     document.getElementById('s-name').textContent          = val('f-name');
+    document.getElementById('s-clientgender').textContent  = selectedClientGender === 'male' ? 'Masculino' : 'Femenino';
     document.getElementById('s-email').textContent         = val('f-email');
     document.getElementById('s-gender').textContent        = selectedVoice === 'male' ? 'Masculina' : 'Femenina';
     document.getElementById('s-q1').textContent            = getVal('q1','f-q1-open');
@@ -926,6 +959,7 @@
     const payload = {
       name:          val('f-name'),
       email:         val('f-email'),
+      clientGender:  selectedClientGender,
       gender:        selectedVoice,
       q1:            getVal('q1','f-q1-open'),
       q2:            getVal('q2','f-q2-open'),
