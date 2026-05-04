@@ -125,6 +125,7 @@ async function processHypnosis(order) {
   // 3a. Generar guion con Claude
   console.log(`[${id}] Generando guion con IA...`);
   const script = await generateScript(anthropic, { name, q1, q2, q3, intensity });
+  console.log('GUION GENERADO:\n' + script);
 
   // 3b. Convertir guion a audio con ElevenLabs
   console.log(`[${id}] Convirtiendo a audio con ElevenLabs...`);
