@@ -217,6 +217,11 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
+    .voice-option-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
     .voice-opt {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -238,18 +243,20 @@
     .voice-opt .voice-icon { font-size: 26px; display: block; margin-bottom: 6px; }
     .voice-opt .voice-label { font-size: 13px; letter-spacing: 0.05em; }
     .voice-preview {
-      display: block;
-      margin-top: 8px;
+      width: 100%;
+      font-family: inherit;
       font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--gold);
+      background: transparent;
       border: 1px solid rgba(255,204,0,0.35);
-      border-radius: 20px;
-      padding: 3px 10px;
+      border-radius: 8px;
+      padding: 9px 10px;
+      cursor: pointer;
       transition: background 0.15s;
     }
-    .voice-preview:hover { background: rgba(255,204,0,0.12); }
+    .voice-preview:hover { background: rgba(255,204,0,0.10); }
 
     /* Choice selector */
     .choice-selector { display: flex; flex-direction: column; gap: 12px; }
@@ -719,16 +726,20 @@
           <p class="step-hint">Esta es la voz que va a guiarte durante los 21 días.</p>
           <div class="field">
             <div class="voice-selector">
-              <button type="button" class="voice-opt" id="voice-male" onclick="selectVoice('male')">
-                <span class="voice-icon">♂</span>
-                <span class="voice-label">Masculina</span>
-                <span class="voice-preview" onclick="event.stopPropagation();playPreview('male')">Escuchar</span>
-              </button>
-              <button type="button" class="voice-opt" id="voice-female" onclick="selectVoice('female')">
-                <span class="voice-icon">♀</span>
-                <span class="voice-label">Femenina</span>
-                <span class="voice-preview" onclick="event.stopPropagation();playPreview('female')">Escuchar</span>
-              </button>
+              <div class="voice-option-wrap">
+                <button type="button" class="voice-opt" id="voice-male" onclick="selectVoice('male')">
+                  <span class="voice-icon">♂</span>
+                  <span class="voice-label">Masculina</span>
+                </button>
+                <button type="button" class="voice-preview" onclick="playPreview('male')">Escuchar Voz</button>
+              </div>
+              <div class="voice-option-wrap">
+                <button type="button" class="voice-opt" id="voice-female" onclick="selectVoice('female')">
+                  <span class="voice-icon">♀</span>
+                  <span class="voice-label">Femenina</span>
+                </button>
+                <button type="button" class="voice-preview" onclick="playPreview('female')">Escuchar Voz</button>
+              </div>
             </div>
           </div>
           <div class="form-nav">
