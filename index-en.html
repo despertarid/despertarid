@@ -900,7 +900,7 @@
 
   function playPreview(gender) {
     if (previewAudio) { previewAudio.pause(); previewAudio = null; }
-    previewAudio = new Audio('/audio/preview-' + gender + '.mp3');
+    previewAudio = new Audio('/audio/preview-' + gender + '-en.mp3');
     previewAudio.play().catch(() => {});
   }
 
