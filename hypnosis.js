@@ -142,7 +142,7 @@ function splitScript(text, maxLength) {
 
   const chunks    = [];
   let   current   = '';
-  const sentences = text.split(/(?<=[.!?])\s+/);
+  const sentences = text.split(/(?<=[.!?…])\s+/);
 
   for (const sentence of sentences) {
     if ((current + sentence).length > maxLength) {
