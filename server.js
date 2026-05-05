@@ -36,6 +36,10 @@ app.use(bodyParser.json());
 // ─── Frontend ────────────────────────────────
 app.get('/',          (req, res) => res.sendFile(join(__dirname, 'index.html')));
 app.get('/gracias',   (req, res) => res.sendFile(join(__dirname, 'index.html')));
+app.get('/audio/:filename', (req, res) => {
+  const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '');
+  res.sendFile(join(__dirname, 'audio', filename));
+});
 app.get('/cancelado', (req, res) => res.sendFile(join(__dirname, 'index.html')));
 
 // ─── Almacenamiento temporal de órdenes ─────

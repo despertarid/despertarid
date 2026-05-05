@@ -237,6 +237,19 @@
     }
     .voice-opt .voice-icon { font-size: 26px; display: block; margin-bottom: 6px; }
     .voice-opt .voice-label { font-size: 13px; letter-spacing: 0.05em; }
+    .voice-preview {
+      display: block;
+      margin-top: 8px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(255,204,0,0.35);
+      border-radius: 20px;
+      padding: 3px 10px;
+      transition: background 0.15s;
+    }
+    .voice-preview:hover { background: rgba(255,204,0,0.12); }
 
     /* Choice selector */
     .choice-selector { display: flex; flex-direction: column; gap: 12px; }
@@ -709,10 +722,12 @@
               <button type="button" class="voice-opt" id="voice-male" onclick="selectVoice('male')">
                 <span class="voice-icon">♂</span>
                 <span class="voice-label">Masculina</span>
+                <span class="voice-preview" onclick="event.stopPropagation();playPreview('male')">Escuchar</span>
               </button>
               <button type="button" class="voice-opt" id="voice-female" onclick="selectVoice('female')">
                 <span class="voice-icon">♀</span>
                 <span class="voice-label">Femenina</span>
+                <span class="voice-preview" onclick="event.stopPropagation();playPreview('female')">Escuchar</span>
               </button>
             </div>
           </div>
@@ -860,6 +875,14 @@
     q1: new Set(), q2: new Set(), qtime: new Set(),
     qbelief: new Set(), qbelieforigin: new Set(), q3: new Set()
   };
+
+  let previewAudio = null;
+
+  function playPreview(gender) {
+    if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+    previewAudio = new Audio('/audio/preview-' + gender + '.mp3');
+    previewAudio.play().catch(() => {});
+  }
 
   function selectClientGender(g) {
     selectedClientGender = g;
