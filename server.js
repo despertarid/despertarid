@@ -263,12 +263,12 @@ Introduce la creencia: "${qbelief}" Nómbrala directamente.
 
 Texto exacto:
 
-Nota cómo esa creencia aparece sola.
-Sin que tú la llames.
-Sin que tú la elijas.
-Eso es porque fue instalada tan profundo que se volvió automática.
-Hoy la vemos juntos.
-Y lo que puedes ver, puedes cambiar.
+Nota cómo esa creencia aparece sola…
+Sin que tú la llames…
+Sin que tú la elijas…
+Eso es porque fue instalada tan profundo que se volvió automática…
+Hoy la vemos juntos…
+Y lo que puedes ver, puedes cambiar…
 
 Desmonta la creencia usando lo que respondió sobre cuándo empezó: "${qbelieforigin}"
 No nació con ella. La aprendió. La heredó. La instalaron sin su permiso. Puede desinstalarla.
@@ -288,23 +288,23 @@ Afirmación de respiración. Repite la creencia nueva cinco veces. Inhala la cre
 
 Texto exacto:
 
-Pon una mano en tu pecho.
-Siente el calor de tu propia mano.
-Eso que sientes ahí es real.
-Y esta versión que acabas de ver también lo es.
-Cada vez que pongas tu mano aquí durante los próximos 21 días,
-tu mente va a recordar lo que sentiste en este momento.
-No tienes que hacer nada más.
-Solo respirar.
-Y recordar.
+Pon una mano en tu pecho…
+Siente el calor de tu propia mano…
+Eso que sientes ahí es real…
+Y esta versión que acabas de ver también lo es…
+Cada vez que pongas tu mano aquí durante los próximos 21 días…
+tu mente va a recordar lo que sentiste en este momento…
+No tienes que hacer nada más…
+Solo respirar…
+Y recordar…
 
 FASE 4 — AFIRMACIONES DE IDENTIDAD
 
 Texto exacto de apertura:
 
-Ahora escucha estas palabras como si fueran tuyas.
-Porque lo son.
-Cada una.
+Ahora escucha estas palabras como si fueran tuyas…
+Porque lo son…
+Cada una…
 
 Las afirmaciones siempre empiezan con: Soy la clase de persona que.
 Nunca en futuro. Siempre en presente.
@@ -322,8 +322,8 @@ Pregunta 2: quién más se libera cuando tú te liberas.
 Gratitud anticipatoria por lo que ya se está moviendo.
 
 Cuatro pares de respiración. Termina siempre con:
-Inhala quién eres de verdad.
-Exhala quién te dijeron que debías ser.
+Inhala quién eres de verdad…
+Exhala quién te dijeron que debías ser…
 
 FASE 6 — CIERRE, ANCLAJE Y LLAMADO A LA ACCIÓN
 
@@ -332,28 +332,28 @@ Historia hacia el futuro: vas a mirar atrás y sonreír por haber empezado hoy.
 
 Llamado a la acción. Misma voz, mismo ritmo. Texto exacto:
 
-Si lo que viviste aquí resonó contigo, hay un camino completo esperándote. Se llama Reinicio de Identidad. Es el proceso donde esto que comenzaste hoy se vuelve permanente. No como un curso. Como una transformación real. El link está abajo. Sin prisa. Pero si ya sabes, confía.
+Si lo que viviste aquí resonó contigo… hay un camino completo esperándote… Se llama Reinicio de Identidad… Es el proceso donde esto que comenzaste hoy se vuelve permanente… No como un curso… Como una transformación real… El link está abajo… Sin prisa… Pero si ya sabes… confía…
 
 Cierre final. Texto exacto:
 
-No estás esperando convertirte en esa persona.
-Estás recordando que ya lo eres.
+No estás esperando convertirte en esa persona…
+Estás recordando que ya lo eres…
 
 Sensación de sellado. Texto exacto:
 
-Y cada vez que respires profundo hoy,
-esto se activa de nuevo.
-No necesitas recordarlo.
-Tu cuerpo ya lo sabe.
+Y cada vez que respires profundo hoy…
+esto se activa de nuevo…
+No necesitas recordarlo…
+Tu cuerpo ya lo sabe…
 
 Cierre absoluto. Texto exacto:
 
-Abre los ojos cuando estés listo.
-Despacio.
-Con calma.
-Y lleva contigo lo que encontraste aquí.
-Porque ya es tuyo.
-Siempre lo fue.`;
+Abre los ojos cuando estés listo…
+Despacio…
+Con calma…
+Y lleva contigo lo que encontraste aquí…
+Porque ya es tuyo…
+Siempre lo fue…`;
 
   const response = await client.messages.create({
     model: 'claude-opus-4-5',
