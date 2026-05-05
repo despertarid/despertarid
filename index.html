@@ -792,6 +792,9 @@
         Recibirás el audio en <strong id="status-email" style="color:var(--text)">tu email</strong>.
         No cierres esta ventana aún.
       </p>
+      <div id="btn-nueva" style="display:none;margin-top:32px;">
+        <a class="btn-cta" href="/" onclick="resetAndGoHome();return false;">Crear hipnosis nueva →</a>
+      </div>
     </div>
   </div>
   <footer>
@@ -1051,6 +1054,7 @@
     document.getElementById('status-sub').textContent =
       'Revisa también la carpeta de spam, por si acaso.';
 
+    document.getElementById('btn-nueva').style.display = 'block';
     localStorage.removeItem('deid_orderId');
   }
 
@@ -1061,6 +1065,24 @@
       'Algo salió mal al generar tu hipnosis. Escríbenos y lo resolvemos de inmediato.';
     document.getElementById('status-text').textContent  = 'Error en procesamiento';
     document.getElementById('sdot').style.background    = '#f87171';
+  }
+
+  function resetAndGoHome() {
+    // Limpiar estado del formulario
+    step = 0;
+    selectedVoice = '';
+    selectedClientGender = '';
+    Object.keys(selections).forEach(k => selections[k].clear());
+    document.querySelectorAll('.choice-opt.selected').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.voice-opt.selected').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.open-field').forEach(f => { f.value = ''; f.style.height = 'auto'; });
+    ['f-name','f-email'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    localStorage.removeItem('deid_orderId');
+    localStorage.removeItem('deid_email');
+    // Navegar al inicio y mostrar paso 0
+    history.pushState({}, '', '/');
+    route();
+    showStep(0);
   }
 </script>
 </body>
