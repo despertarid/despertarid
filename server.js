@@ -9,7 +9,8 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import Anthropic from '@anthropic-ai/sdk';
 import { Resend } from 'resend';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { generateHypnosisAudio } from './hypnosis.js';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -374,7 +375,14 @@ async function uploadToS3(audioBuffer, name) {
     ContentType: 'audio/mpeg'
   }));
 
-  return `https://${bucket}.s3.${region}.amazonaws.com/${filename}`;
+  // URL firmada con 7 días de expiración (no requiere bucket público)
+  const signedUrl = await getSignedUrl(
+    s3,
+    new GetObjectCommand({ Bucket: bucket, Key: filename }),
+    { expiresIn: 60 * 60 * 24 * 7 }
+  );
+
+  return signedUrl;
 }
 
 // ============================================
