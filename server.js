@@ -9,6 +9,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import Anthropic from '@anthropic-ai/sdk';
 import { Resend } from 'resend';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { generateHypnosisAudio } from './hypnosis.js';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -148,9 +149,18 @@ async function processHypnosis(order) {
   console.log(`[${id}] Convirtiendo a audio con ElevenLabs...`);
   const audioBuffer = await generateHypnosisAudio(script, gender);
 
-  // 3c. Enviar email con el audio adjunto
+  // 3c. Subir audio a S3
+  console.log(`[${id}] Subiendo audio a S3...`);
+  const s3Url = await uploadToS3(audioBuffer, name);
+  if (s3Url) {
+    order.s3Url = s3Url;
+    orders.set(id, order);
+    console.log(`[${id}] Audio disponible en S3: ${s3Url}`);
+  }
+
+  // 3d. Enviar email con el audio adjunto
   console.log(`[${id}] Enviando email a ${email}...`);
-  await sendDeliveryEmail(resend, { name, email, audioBuffer, orderId: id });
+  await sendDeliveryEmail(resend, { name, email, audioBuffer, orderId: id, s3Url });
 
   // Marcar como completado
   order.status = 'delivered';
@@ -371,9 +381,47 @@ Siempre lo fue…`;
 }
 
 // ============================================
+// Subir audio a S3
+// ============================================
+async function uploadToS3(audioBuffer, name) {
+  const accessKeyId     = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const region          = process.env.AWS_REGION;
+  const bucket          = process.env.AWS_BUCKET_NAME;
+
+  if (!accessKeyId || !secretAccessKey || !region || !bucket) {
+    console.warn('S3 no configurado — se omite subida a S3.');
+    return null;
+  }
+
+  const s3 = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
+
+  const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const date     = new Date().toISOString().slice(0, 10);
+  const filename = `hipnosis-${safeName}-${date}.mp3`;
+
+  await s3.send(new PutObjectCommand({
+    Bucket:      bucket,
+    Key:         filename,
+    Body:        audioBuffer,
+    ContentType: 'audio/mpeg'
+  }));
+
+  return `https://${bucket}.s3.${region}.amazonaws.com/${filename}`;
+}
+
+// ============================================
 // Envío de email con Resend
 // ============================================
-async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId }) {
+async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId, s3Url }) {
+  const downloadButton = s3Url
+    ? `<div style="text-align:center;margin:28px 0;">
+        <a href="${s3Url}" style="display:inline-block;background:#FFCC00;color:#1a1a1a;font-family:Georgia,serif;font-size:15px;font-weight:bold;padding:14px 32px;border-radius:6px;text-decoration:none;">
+          Descargar mi hipnosis
+        </a>
+      </div>`
+    : '';
+
   await resendClient.emails.send({
     from: 'Despertar ID™ <hipnosis@qrise.co>',
     to: email,
@@ -389,8 +437,9 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
           Los primeros días puedes no sentir nada dramático. Eso es normal. El cambio ocurre por debajo de lo que puedes ver. Confía en el proceso.<br>
           Escúchala 21 días seguidos. No 20. No 15. 21.
         </p>
+        ${downloadButton}
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
-          Tu hipnosis está adjunta a este correo como archivo MP3.<br>
+          Tu hipnosis también está adjunta a este correo como archivo MP3.<br>
           Es tuya para siempre.
         </p>
         <p style="color: #555; font-size: 15px; margin-bottom: 32px;">
@@ -477,6 +526,82 @@ app.get('/api/order/:id/status', (req, res) => {
   const order = orders.get(req.params.id);
   if (!order) return res.status(404).json({ error: 'No encontrada.' });
   res.json({ status: order.status, deliveredAt: order.deliveredAt || null });
+});
+
+// ============================================
+// Admin — página de órdenes (protegida con ADMIN_PASSWORD)
+// ============================================
+function checkAdminAuth(req, res) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    res.status(503).send('Panel admin no configurado (falta ADMIN_PASSWORD).');
+    return false;
+  }
+  if (req.query.p !== adminPassword) {
+    res.status(401).send('No autorizado.');
+    return false;
+  }
+  return true;
+}
+
+app.get('/admin', (req, res) => {
+  if (!checkAdminAuth(req, res)) return;
+
+  const rows = [...orders.values()]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map(o => {
+      const download = o.s3Url
+        ? `<a href="${o.s3Url}" target="_blank" style="color:#b8860b;">Descargar</a>`
+        : '—';
+      const statusColors = { pending_payment: '#888', generating: '#d4a017', delivered: '#2e7d32', error: '#c62828' };
+      const color = statusColors[o.status] || '#333';
+      return `<tr>
+        <td>${o.name}</td>
+        <td>${o.email}</td>
+        <td>${new Date(o.createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</td>
+        <td style="color:${color};font-weight:600;">${o.status}</td>
+        <td>${download}</td>
+        <td style="font-size:11px;color:#999;">${o.id.slice(0, 8).toUpperCase()}</td>
+      </tr>`;
+    }).join('');
+
+  res.send(`<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Despertar ID™</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+    header { background: #1a1a1a; color: #FFCC00; padding: 16px 32px; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    main { padding: 32px; }
+    h2 { font-size: 16px; color: #555; margin-bottom: 20px; font-weight: 400; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    th { background: #1a1a1a; color: #FFCC00; padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; letter-spacing: .5px; }
+    td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+    .empty { text-align: center; padding: 48px; color: #999; }
+  </style>
+</head>
+<body>
+  <header>Despertar ID™ — Admin</header>
+  <main>
+    <h2>${orders.size} órdenes en memoria</h2>
+    <table>
+      <thead><tr><th>Nombre</th><th>Email</th><th>Fecha</th><th>Estado</th><th>Descarga</th><th>ID</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="6" class="empty">Sin órdenes aún.</td></tr>'}</tbody>
+    </table>
+  </main>
+</body>
+</html>`);
+});
+
+app.get('/admin/api/orders', (req, res) => {
+  if (!checkAdminAuth(req, res)) return;
+  const data = [...orders.values()].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json(data);
 });
 
 // ─── Iniciar servidor ────────────────────────
