@@ -181,7 +181,7 @@ REGLAS GLOBALES DE ESTILO:
 - Pausas con puntos suspensivos ... Nunca escribas "pausa" ni uses corchetes.
 - Escribe SOLO el guion. Sin títulos de fase, sin notas, sin explicaciones.
 - Cada idea en su propia línea o con salto de línea.
-- Concordancia de género: el cliente es ${genLabel}. Todas las palabras con concordancia de género deben estar en ${clientGender === 'female' ? 'femenino' : 'masculino'} sin excepción en todas las fases. Palabras que cambian: tranquilo→tranquila, listo→lista, solo→sola, relajado→relajada, abierto→abierta, dispuesto→dispuesta, cansado→cansada, atrapado→atrapada, frustrado→frustrada, preparado→preparada, bienvenido→bienvenida, conectado→conectada. ${clientGender === 'female' ? 'Usa siempre la forma femenina de estas palabras.' : 'Usa siempre la forma masculina de estas palabras.'}
+- Concordancia de género: el cliente es ${genLabel}. Todas las palabras con concordancia de género deben estar en ${clientGender === 'female' ? 'femenino' : 'masculino'} sin excepción en todas las fases. Palabras que cambian: tranquilo→tranquila, listo→lista, solo→sola, relajado→relajada, abierto→abierta, dispuesto→dispuesta, cansado→cansada, atrapado→atrapada, frustrado→frustrada, preparado→preparada, bienvenido→bienvenida, conectado→conectada, rodeado→rodeada. ${clientGender === 'female' ? 'Usa siempre la forma femenina de estas palabras.' : 'Usa siempre la forma masculina de estas palabras.'}
 
 ════════════════════════════════════════
 ESTRUCTURA EXACTA DEL GUION
