@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Despertar ID™ — Hipnosis personalizada</title>
-  <meta name="description" content="Responde preguntas honestas. Recibe en tu email un audio de hipnosis creado solo para ti. $27, pago único.">
+  <meta name="description" content="Responde preguntas honestas. Recibe en tu email una hipnosis creada solo para ti. $27, pago único.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
@@ -538,7 +538,7 @@
   <section class="form-section" id="formulario">
     <div class="container">
       <h2>Crea tu hipnosis</h2>
-      <p class="form-desc">Cada respuesta hace el audio más preciso para ti.</p>
+      <p class="form-desc">Cada respuesta hace la hipnosis más precisa para ti.</p>
 
       <div class="progress">
         <div class="pdot" id="d0"></div>
@@ -575,7 +575,7 @@
           </div>
           <div class="field">
             <label for="f-email">Tu email</label>
-            <input type="email" id="f-email" placeholder="Aquí recibirás tu audio" autocomplete="email">
+            <input type="email" id="f-email" placeholder="Aquí recibirás tu hipnosis" autocomplete="email">
           </div>
           <div class="form-nav">
             <button class="btn-next" onclick="nextStep(0)">Continuar →</button>
@@ -798,7 +798,7 @@
       <div class="trust-items">
         <div class="trust-item"><span class="ti-icon">⚡</span> Entrega en minutos</div>
         <div class="trust-item"><span class="ti-icon">🔒</span> Pago seguro con PayPal</div>
-        <div class="trust-item"><span class="ti-icon">🎧</span> Audio MP3 para siempre</div>
+        <div class="trust-item"><span class="ti-icon">🎧</span> Hipnosis MP3 para siempre</div>
         <div class="trust-item"><span class="ti-icon">✨</span> 100% personalizado</div>
       </div>
     </div>
@@ -828,13 +828,13 @@
     <div class="container">
       <div class="status-icon pulse" id="status-icon">⏳</div>
       <h1 id="status-title">Pago recibido.<br>Creando tu hipnosis…</h1>
-      <p id="status-desc">Estamos generando tu audio personalizado con IA. Esto toma unos minutos.</p>
+      <p id="status-desc">Estamos generando tu hipnosis personalizada con IA. Esto toma unos minutos.</p>
       <div class="status-badge">
         <div class="sdot blink" id="sdot"></div>
         <span id="status-text">Procesando…</span>
       </div>
       <p id="status-sub" style="font-size:14px;color:var(--muted);margin-top:16px;">
-        Recibirás el audio en <strong id="status-email" style="color:var(--text)">tu email</strong>.
+        Recibirás la hipnosis en <strong id="status-email" style="color:var(--text)">tu email</strong>.
         No cierres esta ventana aún.
       </p>
       <div id="btn-nueva" style="display:none;margin-top:32px;">
@@ -1102,8 +1102,8 @@
     document.getElementById('status-title').textContent =
       '¡Tu hipnosis está lista!';
     document.getElementById('status-desc').textContent =
-      'Ya enviamos el audio a tu email. Busca el mensaje con asunto "esto fue creado solo para ti".';
-    document.getElementById('status-text').textContent = 'Audio enviado ✓';
+      'Ya enviamos la hipnosis a tu email. Busca el mensaje con asunto "esto fue creado solo para ti".';
+    document.getElementById('status-text').textContent = 'Hipnosis enviada ✓';
 
     const dot = document.getElementById('sdot');
     dot.classList.remove('blink');
