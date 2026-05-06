@@ -694,7 +694,7 @@ async function createPayPalOrder(orderId, email, language = 'es') {
       intent: 'CAPTURE',
       purchase_units: [{
         custom_id: orderId,
-        amount: { currency_code: 'USD', value: '27.00' },
+        amount: { currency_code: 'USD', value: language === 'en' ? '57.00' : '27.00' },
         description: 'Hipnosis personalizada — Despertar ID™'
       }],
       application_context: {
