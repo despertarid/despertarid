@@ -42,7 +42,7 @@ export async function generateHypnosisAudio(script, gender) {
 
   for (let i = 0; i < chunks.length; i++) {
     console.log(`  [ElevenLabs] Procesando fragmento ${i + 1}/${chunks.length}...`);
-    const buffer = await convertChunkToAudio(chunks[i], voiceId, apiKey);
+    const buffer = await withRetry(() => convertChunkToAudio(chunks[i], voiceId, apiKey));
     audioBuffers.push(buffer);
   }
 
@@ -133,6 +133,18 @@ async function convertChunkToAudio(text, voiceId, apiKey) {
 
   const arrayBuffer = await response.arrayBuffer();
   return Buffer.from(arrayBuffer);
+}
+
+async function withRetry(fn, retries = 3, delayMs = 2000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      console.warn(`  [ElevenLabs] Reintento ${attempt}/${retries - 1} en ${delayMs * attempt}ms...`);
+      await new Promise(r => setTimeout(r, delayMs * attempt));
+    }
+  }
 }
 
 /**

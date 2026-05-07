@@ -69,6 +69,13 @@ app.post('/api/order/create', async (req, res) => {
     return res.status(400).json({ error: 'El campo clientGender debe ser "male" o "female".' });
   }
 
+  const FIELD_LIMITS = { name: 100, email: 254, q1: 500, q2: 500, qtime: 300, qbelief: 300, qbelieforigin: 300, q3: 500, q3vision: 500 };
+  for (const [field, max] of Object.entries(FIELD_LIMITS)) {
+    if (req.body[field]?.length > max) {
+      return res.status(400).json({ error: `El campo "${field}" excede el máximo de ${max} caracteres.` });
+    }
+  }
+
   // Crear ID único para esta orden
   const orderId = crypto.randomUUID();
 
@@ -137,6 +144,8 @@ app.post('/api/paypal/webhook', async (req, res) => {
     console.error('Error generando hipnosis:', err);
     order.status = 'error';
     orders.set(orderId, order);
+    sendErrorEmail(resend, { name: order.name, email: order.email, orderId, language: order.language })
+      .catch(e => console.error('Error enviando email de fallo:', e));
   });
 });
 
@@ -584,6 +593,8 @@ async function uploadToS3(audioBuffer, name) {
 // ============================================
 async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId, s3Url, language }) {
   const isEn = language === 'en';
+  const MAX_ATTACHMENT_BYTES = 7 * 1024 * 1024;
+  const includeAttachment = audioBuffer.length <= MAX_ATTACHMENT_BYTES;
   const downloadLabel = isEn ? 'Download my hypnosis' : 'Descargar mi hipnosis';
   const downloadButton = s3Url
     ? `<div style="text-align:center;margin:28px 0;">
@@ -610,8 +621,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
         </p>
         ${downloadButton}
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
-          Your hypnosis is also attached to this email as an MP3 file.<br>
-          It's yours forever.
+          ${includeAttachment ? 'Your hypnosis is also attached to this email as an MP3 file.<br>It\'s yours forever.' : 'Your download link is valid for 7 days.'}
         </p>
         <p style="color: #555; font-size: 15px; margin-bottom: 32px;">
           When you start to notice the change, there's a next step waiting for you.<br>
@@ -634,8 +644,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
         </p>
         ${downloadButton}
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
-          Tu hipnosis también está adjunta a este correo como archivo MP3.<br>
-          Es tuya para siempre.
+          ${includeAttachment ? 'Tu hipnosis también está adjunta a este correo como archivo MP3.<br>Es tuya para siempre.' : 'El enlace de descarga es válido por 7 días.'}
         </p>
         <p style="color: #555; font-size: 15px; margin-bottom: 32px;">
           Cuando empieces a notar el cambio, hay un siguiente paso esperándote.<br>
@@ -647,18 +656,51 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
       </div>
     `;
 
+  const attachments = includeAttachment
+    ? [{ filename: `hypnosis-${name.toLowerCase().replace(/\s+/g, '-')}.mp3`, content: audioBuffer.toString('base64'), contentType: 'audio/mpeg' }]
+    : [];
+
+  await resendClient.emails.send({ from: 'Despertar ID™ <hipnosis@qrise.co>', to: email, subject, html, attachments });
+}
+
+// ============================================
+// Email de error al usuario
+// ============================================
+async function sendErrorEmail(resendClient, { name, email, orderId, language }) {
+  const isEn = language === 'en';
   await resendClient.emails.send({
     from: 'Despertar ID™ <hipnosis@qrise.co>',
     to: email,
-    subject,
-    html,
-    attachments: [
-      {
-        filename: `hypnosis-${name.toLowerCase().replace(/\s+/g, '-')}.mp3`,
-        content: audioBuffer.toString('base64'),
-        contentType: 'audio/mpeg'
-      }
-    ]
+    subject: isEn ? 'We had a problem with your order' : 'Tuvimos un problema con tu orden',
+    html: isEn ? `
+      <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.8;">
+        <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${name}, something went wrong.</h1>
+        <p style="color:#333;font-size:15px;margin-bottom:20px;">
+          We had a technical problem generating your hypnosis.<br>
+          Your payment is safe. We'll fix this manually and send it to you as soon as possible.
+        </p>
+        <p style="color:#333;font-size:15px;">
+          If you don't hear from us within 24 hours, reply to this email and we'll take care of it immediately.
+        </p>
+        <p style="color:#333;font-size:15px;margin-top:32px;">With intention,<br><strong>Despertar ID</strong></p>
+        <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
+        <p style="font-size:12px;color:#999;">Despertar ID™ · Order #${orderId.slice(0, 8).toUpperCase()}</p>
+      </div>
+    ` : `
+      <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.8;">
+        <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${name}, algo salió mal.</h1>
+        <p style="color:#333;font-size:15px;margin-bottom:20px;">
+          Tuvimos un problema técnico generando tu hipnosis.<br>
+          Tu pago está seguro. Lo vamos a resolver manualmente y te lo enviamos lo antes posible.
+        </p>
+        <p style="color:#333;font-size:15px;">
+          Si no tienes noticias en 24 horas, responde este correo y lo atendemos de inmediato.
+        </p>
+        <p style="color:#333;font-size:15px;margin-top:32px;">Con intención,<br><strong>Despertar ID</strong></p>
+        <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
+        <p style="font-size:12px;color:#999;">Despertar ID™ · Orden #${orderId.slice(0, 8).toUpperCase()}</p>
+      </div>
+    `
   });
 }
 
