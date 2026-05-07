@@ -231,7 +231,7 @@ async function processHypnosis(order) {
 
   // 3d. Enviar email con el audio adjunto
   console.log(`[${id}] Enviando email a ${email}...`);
-  await sendDeliveryEmail(resend, { name, email, audioBuffer, orderId: id, s3Url, language });
+  await sendDeliveryEmail(resend, { name, email, audioBuffer, orderId: id, s3Url, language, q3vision });
 
   // Marcar como completado
   order.status = 'delivered';
@@ -624,25 +624,32 @@ async function uploadToS3(audioBuffer, name) {
 // ============================================
 // Envío de email con Resend
 // ============================================
-async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId, s3Url, language }) {
-  const isEn     = language === 'en';
-  const safeName = escapeHtml(name);
+async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId, s3Url, language, q3vision = '' }) {
+  const isEn         = language === 'en';
+  const safeName     = escapeHtml(name);
+  const safeQ3vision = escapeHtml(q3vision);
   const MAX_ATTACHMENT_BYTES = 7 * 1024 * 1024;
   // Sin S3: adjuntar siempre (es el único canal de entrega).
   // Con S3: adjuntar solo si el archivo es pequeño (evita rechazos de email).
   const includeAttachment = !s3Url || audioBuffer.length <= MAX_ATTACHMENT_BYTES;
-  const downloadLabel = isEn ? 'Download my hypnosis' : 'Descargar mi Programación de identidad™';
-  const downloadButton = s3Url
-    ? `<div style="text-align:center;margin:28px 0;">
-        <a href="${s3Url}" style="display:inline-block;background:#FFCC00;color:#1a1a1a;font-family:Georgia,serif;font-size:15px;font-weight:bold;padding:14px 32px;border-radius:6px;text-decoration:none;">
-          ${downloadLabel}
-        </a>
-      </div>`
-    : '';
 
   const subject = isEn
     ? `${name}, this was created just for you`
     : `${name}, esto fue creado solo para ti`;
+
+  // ── Botón CTA español ──────────────────────
+  const ctaEs = s3Url
+    ? `<a href="${s3Url}" style="display:block;background:#c9aa82;color:#0a0a0a;text-align:center;padding:16px 32px;text-decoration:none;font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;border-radius:2px;margin:40px 0;font-family:'DM Sans',sans-serif;">Escuchar tu Programación de Identidad™</a>`
+    : `<p style="text-align:center;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#8a7c6e;margin:40px 0;font-family:'DM Sans',sans-serif;">Tu sesión está adjunta a este email como MP3.</p>`;
+
+  // ── Botón CTA inglés ───────────────────────
+  const downloadButton = s3Url
+    ? `<div style="text-align:center;margin:28px 0;">
+        <a href="${s3Url}" style="display:inline-block;background:#FFCC00;color:#1a1a1a;font-family:Georgia,serif;font-size:15px;font-weight:bold;padding:14px 32px;border-radius:6px;text-decoration:none;">
+          Download my hypnosis
+        </a>
+      </div>`
+    : '';
 
   const html = isEn ? `
       <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a; line-height: 1.8;">
@@ -667,30 +674,70 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
         <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
         <p style="font-size: 12px; color: #999;">Despertar ID™ · Order #${orderId.slice(0, 8).toUpperCase()}</p>
       </div>
-    ` : `
-      <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a; line-height: 1.8;">
-        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${safeName}, tu Programación de identidad™ está lista.</h1>
-        <p style="color: #333; font-size: 15px; margin-bottom: 20px;">La creé basándome exactamente en lo que me compartiste.</p>
-        <p style="color: #333; font-size: 15px; margin-bottom: 8px;"><strong>Antes de darle play, lee esto:</strong></p>
-        <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
-          Escúchala en un lugar sin interrupciones.<br>
-          Usa audífonos si puedes.<br>
-          Los primeros días puedes no sentir nada dramático. Eso es normal. El cambio ocurre por debajo de lo que puedes ver. Confía en el proceso.<br>
-          Escúchala 21 días seguidos. No 20. No 15. 21.
-        </p>
-        ${downloadButton}
-        <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
-          ${includeAttachment ? 'Tu Programación de identidad™ también está adjunta a este correo como archivo MP3.<br>Es tuya para siempre.' : 'El enlace de descarga es válido por 7 días.'}
-        </p>
-        <p style="color: #555; font-size: 15px; margin-bottom: 32px;">
-          Cuando empieces a notar el cambio, hay un siguiente paso esperándote.<br>
-          Pero por ahora, solo dale play.
-        </p>
-        <p style="color: #333; font-size: 15px;">Con intención,<br><strong>Despertar ID</strong></p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
-        <p style="font-size: 12px; color: #999;">Despertar ID™ · Orden #${orderId.slice(0, 8).toUpperCase()}</p>
-      </div>
-    `;
+    ` : `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu Programación de Identidad™</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; color: #e8e2d9; font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.8; -webkit-font-smoothing: antialiased; }
+    .wrapper { max-width: 620px; margin: 0 auto; padding: 48px 32px; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 11px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; color: #8a7c6e; margin-bottom: 48px; }
+    .headline { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; line-height: 1.25; color: #f0ebe4; margin-bottom: 8px; }
+    .headline em { font-style: italic; color: #c9aa82; }
+    .subheadline { font-size: 13px; color: #6b6057; letter-spacing: 1px; margin-bottom: 40px; }
+    .divider { width: 48px; height: 1px; background: #3a3028; margin-bottom: 40px; }
+    p { font-size: 15px; color: #c8c0b5; margin-bottom: 20px; }
+    .highlight { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; font-weight: 400; color: #e8d9c0; border-left: 2px solid #c9aa82; padding-left: 20px; margin: 32px 0; line-height: 1.5; }
+    .instructions-block { background: #111009; border: 1px solid #2a2520; border-radius: 4px; padding: 28px 32px; margin: 36px 0; }
+    .instructions-block h3 { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #8a7c6e; margin-bottom: 20px; }
+    .instruction-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; font-size: 14px; color: #b0a89c; }
+    .instruction-item:last-child { margin-bottom: 0; }
+    .instruction-icon { font-size: 15px; line-height: 1.6; flex-shrink: 0; }
+    .days-callout { text-align: center; padding: 36px 0; border-top: 1px solid #1e1a16; border-bottom: 1px solid #1e1a16; margin: 40px 0; }
+    .days-number { font-family: 'Cormorant Garamond', serif; font-size: 72px; font-weight: 300; color: #c9aa82; line-height: 1; display: block; }
+    .days-label { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #5a524a; margin-top: 8px; display: block; }
+    .closing { font-size: 14px; color: #7a7068; margin-top: 48px; padding-top: 32px; border-top: 1px solid #1e1a16; }
+    .closing strong { color: #c8c0b5; font-weight: 500; display: block; margin-bottom: 4px; }
+    .closing .brand-closing { font-family: 'Cormorant Garamond', serif; font-style: italic; color: #8a7c6e; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="brand">Despertar ID — Programación de Identidad™</div>
+    <h1 class="headline">${safeName}, tu sesión<br><em>está lista.</em></h1>
+    <p class="subheadline">Lo que recibes hoy no es motivación. Es reprogramación.</p>
+    <div class="divider"></div>
+    <p>Tu mente ya sabe que algo necesita cambiar. Pero el cambio real no ocurre con información. Ocurre con repetición, en el momento correcto, cuando el subconsciente baja la guardia.</p>
+    <p>Esta sesión fue diseñada específicamente para ti. Cada pausa, cada cambio de ritmo, cada repetición tiene un propósito. Nada está puesto al azar.</p>
+    ${safeQ3vision ? `<div class="highlight">"${safeQ3vision}"</div><p>Esa frase no es un consejo. Es tu nuevo punto de referencia interno. Y esta sesión está diseñada para instalarlo donde realmente hace falta: en tu subconsciente.</p>` : ''}
+    <div class="days-callout">
+      <span class="days-number">21</span>
+      <span class="days-label">días seguidos · sin excepciones</span>
+    </div>
+    <div class="instructions-block">
+      <h3>Cómo escucharla</h3>
+      <div class="instruction-item"><span class="instruction-icon">🌙</span><span>Escúchala cada noche antes de dormir. Ese es el momento donde tu cerebro entra en el estado más receptivo que existe.</span></div>
+      <div class="instruction-item"><span class="instruction-icon">🎧</span><span>Usa audífonos si puedes. Sin pantallas, sin distracciones.</span></div>
+      <div class="instruction-item"><span class="instruction-icon">😴</span><span>Si te quedas dormido durante la sesión, perfecto. Tu mente subconsciente sigue recibiendo la programación.</span></div>
+      <div class="instruction-item"><span class="instruction-icon">🔁</span><span>Si puedes escucharla también al despertar, el proceso se acelera. Pero la sesión de noche es la que no puedes saltarte.</span></div>
+      <div class="instruction-item"><span class="instruction-icon">🚫</span><span>No saltes días. La repetición no es un detalle del proceso. La repetición <em>es</em> el proceso.</span></div>
+    </div>
+    <p>En algún punto vas a notar algo diferente. No siempre es dramático. A veces es que reaccionas distinto en una conversación. A veces es más silencio adentro. Más calma. Menos urgencia de buscar validación.</p>
+    <p>Eso es la reprogramación funcionando.</p>
+    <p>Un último punto: mucha gente teme volverse fría o distante cuando empieza a trabajar su identidad. Ese miedo es normal. Pero lo que realmente cambia no es tu capacidad de amar, sino que dejas de romperte en pedazos para darle los pedazos a otros.</p>
+    <p>Eso no es frialdad. Eso es estar entero.</p>
+    ${ctaEs}
+    <div class="closing">
+      <strong>Alejandro</strong>
+    </div>
+    <p style="font-size:11px;color:#3a3028;margin-top:32px;">Despertar ID™ · Orden #${orderId.slice(0, 8).toUpperCase()}</p>
+  </div>
+</body>
+</html>`;
 
   const attachments = includeAttachment
     ? [{ filename: `hypnosis-${name.toLowerCase().replace(/\s+/g, '-')}.mp3`, content: audioBuffer.toString('base64'), contentType: 'audio/mpeg' }]
