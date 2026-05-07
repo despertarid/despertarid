@@ -249,7 +249,7 @@ async function generateScript(client, { name, clientGender, q1, q2, qtime, qbeli
   const genLabel = isEn
     ? (clientGender === 'female' ? 'Female'   : 'Male')
     : (clientGender === 'female' ? 'Femenino' : 'Masculino');
-  const prompt = isEn ? `You are the creator of Identity programming™ for the Despertar ID™ method. Write a deeply personalized Identity programming™ script in English following the exact six-phase structure detailed below.
+  const prompt = isEn ? `You are the creator of Identity programming™ for the Self ID Reset™ method. Write a deeply personalized Identity programming™ script in English following the exact six-phase structure detailed below.
 
 CLIENT DATA:
 - Name: ${name}
@@ -680,7 +680,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
 </head>
 <body>
   <div class="wrapper">
-    <div class="brand">Despertar ID — Identity Programming™</div>
+    <div class="brand">Self ID Reset — Identity Programming™</div>
     <h1 class="headline">${safeName}, your session<br><em>is ready.</em></h1>
     <p class="subheadline">What you receive today is not motivation. It's reprogramming.</p>
     <div class="divider"></div>
@@ -706,9 +706,9 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
     ${ctaEn}
     <div class="closing">
       <strong>Alejandro</strong>
-      <span class="brand-closing">Despertar ID</span>
+      <span class="brand-closing">Self ID Reset</span>
     </div>
-    <p style="font-size:11px;color:#3a3028;margin-top:32px;">Despertar ID™ · Order #${orderId.slice(0, 8).toUpperCase()}</p>
+    <p style="font-size:11px;color:#3a3028;margin-top:32px;">Self ID Reset™ · Order #${orderId.slice(0, 8).toUpperCase()}</p>
   </div>
 </body>
 </html>` : `<!DOCTYPE html>
@@ -804,9 +804,9 @@ async function sendErrorEmail(resendClient, { name, email, orderId, language }) 
         <p style="color:#333;font-size:15px;">
           If you don't hear from us within 24 hours, reply to this email and we'll take care of it immediately.
         </p>
-        <p style="color:#333;font-size:15px;margin-top:32px;">With intention,<br><strong>Despertar ID</strong></p>
+        <p style="color:#333;font-size:15px;margin-top:32px;">With intention,<br><strong>Alejandro</strong><br><span style="font-size:13px;color:#888;">Self ID Reset</span></p>
         <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
-        <p style="font-size:12px;color:#999;">Despertar ID™ · Order #${orderId.slice(0, 8).toUpperCase()}</p>
+        <p style="font-size:12px;color:#999;">Self ID Reset™ · Order #${orderId.slice(0, 8).toUpperCase()}</p>
       </div>
     ` : `
       <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.8;">
