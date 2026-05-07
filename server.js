@@ -7,6 +7,7 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import { rateLimit } from 'express-rate-limit';
 import Anthropic from '@anthropic-ai/sdk';
 import { Resend } from 'resend';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -57,6 +58,24 @@ app.get('/cancelado',      (req, res) => res.sendFile(join(__dirname, 'index.htm
 // En producción: reemplazar con Firebase o Supabase
 const orders = new Map();
 
+const FIELD_LIMITS = {
+  name: 100, email: 254,
+  q1: 500, q2: 500, q3: 500, q3vision: 500,
+  qtime: 300, qbelief: 300, qbelieforigin: 300
+};
+
+const orderCreateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes. Intenta de nuevo en 15 minutos.' }
+});
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -69,11 +88,15 @@ function escapeHtml(str) {
 // ============================================
 // PASO 1: Recibir formulario y crear orden
 // ============================================
-app.post('/api/order/create', async (req, res) => {
+app.post('/api/order/create', orderCreateLimiter, async (req, res) => {
   const { name, email, clientGender, gender, language, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = req.body;
 
   if (!name || !email || !clientGender || !gender || !q1 || !q2 || !qtime || !qbelief || !qbelieforigin || !q3 || !q3vision) {
     return res.status(400).json({ error: 'Faltan campos requeridos.' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'El campo email no tiene un formato válido.' });
   }
 
   if (!['male', 'female'].includes(gender)) {
@@ -84,7 +107,6 @@ app.post('/api/order/create', async (req, res) => {
     return res.status(400).json({ error: 'El campo clientGender debe ser "male" o "female".' });
   }
 
-  const FIELD_LIMITS = { name: 100, email: 254, q1: 500, q2: 500, qtime: 300, qbelief: 300, qbelieforigin: 300, q3: 500, q3vision: 500 };
   for (const [field, max] of Object.entries(FIELD_LIMITS)) {
     if (req.body[field]?.length > max) {
       return res.status(400).json({ error: `El campo "${field}" excede el máximo de ${max} caracteres.` });
@@ -584,7 +606,9 @@ async function uploadToS3(audioBuffer, name) {
 async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId, s3Url, language }) {
   const isEn = language === 'en';
   const MAX_ATTACHMENT_BYTES = 7 * 1024 * 1024;
-  const includeAttachment = audioBuffer.length <= MAX_ATTACHMENT_BYTES;
+  // Sin S3: adjuntar siempre (es el único canal de entrega).
+  // Con S3: adjuntar solo si el archivo es pequeño (evita rechazos de email).
+  const includeAttachment = !s3Url || audioBuffer.length <= MAX_ATTACHMENT_BYTES;
   const downloadLabel = isEn ? 'Download my hypnosis' : 'Descargar mi hipnosis';
   const downloadButton = s3Url
     ? `<div style="text-align:center;margin:28px 0;">
