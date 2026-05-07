@@ -102,19 +102,19 @@ app.post('/api/order/create', async (req, res) => {
 // ============================================
 app.post('/api/paypal/webhook', async (req, res) => {
   // Verificar que la notificación es legítima de PayPal
-  const isValid = verifyPayPalWebhook(req);
+  const isValid = await verifyPayPalWebhook(req);
   if (!isValid) {
     return res.status(401).json({ error: 'Webhook inválido.' });
   }
 
   const event = req.body;
 
-  // Solo procesar pagos completados
-  if (event.event_type !== 'CHECKOUT.ORDER.APPROVED') {
+  // Solo procesar capturas completadas (dinero realmente cobrado)
+  if (event.event_type !== 'PAYMENT.CAPTURE.COMPLETED') {
     return res.json({ received: true });
   }
 
-  const orderId = event.resource?.purchase_units?.[0]?.custom_id;
+  const orderId = event.resource?.custom_id;
   const order = orders.get(orderId);
 
   if (!order) {
@@ -663,17 +663,16 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
 }
 
 // ============================================
-// Crear orden en PayPal
+// Helper: obtener access token de PayPal
 // ============================================
-async function createPayPalOrder(orderId, email, language = 'es') {
+async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID;
-  const secret = process.env.PAYPAL_SECRET;
-  const baseUrl = process.env.PAYPAL_ENV === 'production'
+  const secret   = process.env.PAYPAL_SECRET;
+  const baseUrl  = process.env.PAYPAL_ENV === 'production'
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com';
 
-  // Obtener access token
-  const authRes = await fetch(`${baseUrl}/v1/oauth2/token`, {
+  const res = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       'Authorization': 'Basic ' + Buffer.from(`${clientId}:${secret}`).toString('base64'),
@@ -681,7 +680,19 @@ async function createPayPalOrder(orderId, email, language = 'es') {
     },
     body: 'grant_type=client_credentials'
   });
-  const { access_token } = await authRes.json();
+  const { access_token } = await res.json();
+  return access_token;
+}
+
+// ============================================
+// Crear orden en PayPal
+// ============================================
+async function createPayPalOrder(orderId, email, language = 'es') {
+  const baseUrl = process.env.PAYPAL_ENV === 'production'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
+
+  const access_token = await getPayPalAccessToken();
 
   // Crear orden
   const orderRes = await fetch(`${baseUrl}/v2/checkout/orders`, {
@@ -710,14 +721,50 @@ async function createPayPalOrder(orderId, email, language = 'es') {
 }
 
 // ============================================
-// Verificación básica de webhook PayPal
+// Verificación de webhook PayPal (API oficial)
 // ============================================
-function verifyPayPalWebhook(req) {
-  // En producción: implementar verificación completa con PAYPAL-TRANSMISSION-ID
-  // Docs: https://developer.paypal.com/api/rest/webhooks/
+async function verifyPayPalWebhook(req) {
   const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-  if (!webhookId) return true; // desactivado en dev
-  return true; // implementar según docs de PayPal
+  if (!webhookId) {
+    console.warn('PAYPAL_WEBHOOK_ID no configurado — verificación omitida en dev.');
+    return true;
+  }
+
+  const transmissionId   = req.headers['paypal-transmission-id'];
+  const transmissionTime = req.headers['paypal-transmission-time'];
+  const certUrl          = req.headers['paypal-cert-url'];
+  const authAlgo         = req.headers['paypal-auth-algo'];
+  const transmissionSig  = req.headers['paypal-transmission-sig'];
+
+  if (!transmissionId || !transmissionTime || !certUrl || !authAlgo || !transmissionSig) {
+    return false;
+  }
+
+  const baseUrl = process.env.PAYPAL_ENV === 'production'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
+
+  const accessToken = await getPayPalAccessToken();
+
+  const verifyRes = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      auth_algo:         authAlgo,
+      cert_url:          certUrl,
+      transmission_id:   transmissionId,
+      transmission_sig:  transmissionSig,
+      transmission_time: transmissionTime,
+      webhook_id:        webhookId,
+      webhook_event:     req.body
+    })
+  });
+
+  const { verification_status } = await verifyRes.json();
+  return verification_status === 'SUCCESS';
 }
 
 // ============================================
@@ -730,7 +777,7 @@ app.get('/api/order/:id/status', (req, res) => {
 });
 
 // ============================================
-// Admin — página de órdenes (protegida con ADMIN_PASSWORD)
+// Admin — página de órdenes (protegida con HTTP Basic Auth)
 // ============================================
 function checkAdminAuth(req, res) {
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -738,10 +785,23 @@ function checkAdminAuth(req, res) {
     res.status(503).send('Panel admin no configurado (falta ADMIN_PASSWORD).');
     return false;
   }
-  if (req.query.p !== adminPassword) {
+
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    res.set('WWW-Authenticate', 'Basic realm="Despertar ID Admin"');
+    res.status(401).send('Autenticación requerida.');
+    return false;
+  }
+
+  const decoded = Buffer.from(authHeader.slice(6), 'base64').toString('utf-8');
+  const password = decoded.split(':').slice(1).join(':'); // soporta ":" en la contraseña
+
+  if (password !== adminPassword) {
+    res.set('WWW-Authenticate', 'Basic realm="Despertar ID Admin"');
     res.status(401).send('No autorizado.');
     return false;
   }
+
   return true;
 }
 
