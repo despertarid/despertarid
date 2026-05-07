@@ -733,6 +733,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
     ${ctaEs}
     <div class="closing">
       <strong>Alejandro</strong>
+      <span class="brand-closing">Despertar ID</span>
     </div>
     <p style="font-size:11px;color:#3a3028;margin-top:32px;">Despertar ID™ · Orden #${orderId.slice(0, 8).toUpperCase()}</p>
   </div>
