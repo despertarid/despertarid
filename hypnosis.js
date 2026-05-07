@@ -57,49 +57,35 @@ export async function generateHypnosisAudio(script, gender) {
  * - Voz a volumen completo (1.0)
  * - Binaural al 10% (0.1), recortado a la duración de la voz
  */
-function mixWithBinaural(voiceBuffer) {
-  return new Promise(async (resolve, reject) => {
-    const id        = randomUUID();
-    const voicePath = join(tmpdir(), `voice-${id}.mp3`);
-    const outPath   = join(tmpdir(), `mixed-${id}.mp3`);
+async function mixWithBinaural(voiceBuffer) {
+  const id        = randomUUID();
+  const voicePath = join(tmpdir(), `voice-${id}.mp3`);
+  const outPath   = join(tmpdir(), `mixed-${id}.mp3`);
 
-    try {
-      await writeFile(voicePath, voiceBuffer);
+  await writeFile(voicePath, voiceBuffer);
 
+  try {
+    await new Promise((resolve, reject) => {
       ffmpeg()
         .input(voicePath)
         .input(BINAURAL_PATH)
         .complexFilter([
-          // Ajustar volumen de la voz (sin cambio) y el binaural al 10%
           '[0:a]volume=1.0[voice]',
           '[1:a]volume=0.1[binaural]',
-          // Mezclar ambos; duración = la más corta (la voz manda)
           '[voice][binaural]amix=inputs=2:duration=shortest[out]'
         ])
         .outputOptions(['-map [out]', '-c:a libmp3lame', '-q:a 2'])
         .output(outPath)
-        .on('end', async () => {
-          try {
-            const result = await readFile(outPath);
-            resolve(result);
-          } catch (e) {
-            reject(e);
-          } finally {
-            unlink(voicePath).catch(() => {});
-            unlink(outPath).catch(() => {});
-          }
-        })
-        .on('error', async (err) => {
-          unlink(voicePath).catch(() => {});
-          unlink(outPath).catch(() => {});
-          reject(err);
-        })
+        .on('end', resolve)
+        .on('error', reject)
         .run();
-    } catch (err) {
-      unlink(voicePath).catch(() => {});
-      reject(err);
-    }
-  });
+    });
+
+    return await readFile(outPath);
+  } finally {
+    unlink(voicePath).catch(() => {});
+    unlink(outPath).catch(() => {});
+  }
 }
 
 /**

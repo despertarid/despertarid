@@ -31,6 +31,12 @@ if (!process.env.RESEND_API_KEY) {
 }
 const resend = new Resend(resendApiKey);
 
+const s3Client = (() => {
+  const { AWS_ACCESS_KEY_ID: accessKeyId, AWS_SECRET_ACCESS_KEY: secretAccessKey, AWS_REGION: region } = process.env;
+  if (!accessKeyId || !secretAccessKey || !region) return null;
+  return new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
+})();
+
 // ─── Middleware ──────────────────────────────
 app.use(cors({ origin: '*' }));
 app.use(bodyParser.json());
@@ -159,10 +165,7 @@ async function processHypnosis(order) {
 
   // 3a. Generar guion con Claude
   console.log(`[${id}] Generando guion con IA...`);
-  const isEnglish = language === 'en';
-  const script = isEnglish
-    ? await generateScriptEnglish(anthropic, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision })
-    : await generateScript(anthropic, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision });
+  const script = await generateScript(anthropic, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }, language);
 
   // 3b. Convertir guion a audio con ElevenLabs
   console.log(`[${id}] Convirtiendo a audio con ElevenLabs...`);
@@ -190,11 +193,179 @@ async function processHypnosis(order) {
 }
 
 // ============================================
-// Generador de guion con Claude
+// Generador de guion con Claude (ES + EN)
 // ============================================
-async function generateScript(client, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }) {
-  const genLabel = clientGender === 'female' ? 'Femenino' : 'Masculino';
-  const prompt = `Eres el creador de hipnosis de identidad del método Despertar ID™. Escribe un guion de hipnosis profundamente personalizado siguiendo la estructura de seis fases exacta que se detalla abajo.
+async function generateScript(client, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }, language = 'es') {
+  const isEn     = language === 'en';
+  const genLabel = isEn
+    ? (clientGender === 'female' ? 'Female'   : 'Male')
+    : (clientGender === 'female' ? 'Femenino' : 'Masculino');
+  const prompt = isEn ? `You are the creator of identity hypnosis for the Despertar ID™ method. Write a deeply personalized hypnosis script in English following the exact six-phase structure detailed below.
+
+CLIENT DATA:
+- Name: ${name}
+- Client gender: ${genLabel}
+- What they want to change: ${q1}
+- How they feel now: ${q2}
+- How long they've been carrying this: ${qtime}
+- Limiting phrase they repeat: ${qbelief}
+- When they started believing it: ${qbelieforigin}
+- Who they want to be / what they want to achieve: ${q3}
+- How they see the version that already overcame this: ${q3vision}
+
+GLOBAL STYLE RULES:
+- American English. Clear, warm, and direct.
+- Simple language. No jargon or complex words.
+- Short sentences. Maximum 15 words per sentence.
+- Pauses with ellipsis ... Never write "pause" or use brackets.
+- Write ONLY the script. No phase titles, no notes, no explanations.
+- Each idea on its own line or with a line break.
+- Gender concordance: use ${clientGender === 'female' ? 'she/her forms and feminine adjectives' : 'he/him forms and masculine adjectives'} consistently throughout.
+
+════════════════════════════════════════
+EXACT SCRIPT STRUCTURE
+════════════════════════════════════════
+
+PHASE 0 — CONSCIOUS INTRODUCTION (maximum 2 minutes)
+
+Begin by naming exactly what the client wrote as what they want to change: "${q1}"
+Use their own words or very close to them. Name the pain, not the solution.
+Explain this is not a meditation. It is an identity hypnosis.
+Name the limiting belief exactly: "${qbelief}"
+Announce the new identity using: "${q3vision}"
+
+Instructions, each on its own line:
+Find a place without interruptions.
+Use headphones.
+Listen for 21 consecutive days.
+
+Invite them to close their eyes.
+
+PHASE 1 — INDUCTION
+
+Breathing block (exact text, three full cycles):
+
+Breathe in deeply... feel the air fill your lungs... and exhale slowly... let go of everything you carried today...
+Breathe in again... deeper this time... and as you exhale... feel your body soften...
+One more time... breathe in calm... hold for a moment... and breathe out tension...
+
+Body relaxation block (exact text):
+
+Release your shoulders... loosen your jaw... gently open your hands... and relax the space between your eyebrows...
+
+Imaginary box block (exact text):
+
+Imagine a box in front of you... inside that box goes everything that happened today... the conversations... the worries... the pending tasks... all of it inside... close it... leave it outside... this space... is yours...
+
+Countdown from five to one (exact text):
+
+Five... feel your body sink a little deeper...
+Four... each breath takes you further in...
+Three... your critical mind rests... what you hear now arrives directly...
+Two... deeper... calmer... more you...
+One... here you are... ready...
+
+PHASE 2 — REFRAMING THE MOMENT
+
+Tell them today they are not meditating. They are doing the most important work that exists. Changing what they believe about themselves.
+
+Introduce the belief: "${qbelief}" Name it directly.
+
+Exact text:
+
+Notice how that belief shows up on its own…
+Without you calling it…
+Without you choosing it…
+That's because it was installed so deep it became automatic…
+Today we see it together…
+And what you can see, you can change…
+
+Dismantle the belief using what they answered about when it started: "${qbelieforigin}"
+They weren't born with it. They learned it. They inherited it. It was installed without their permission. They can uninstall it.
+
+SPECIAL RULE: If qbelieforigin contains "child" or "always been there", this phase must be longer and more tender. First validate the deep pain without rushing. Then dismantle. Never the other way around.
+
+PHASE 3 — IDENTITY MIRROR VISUALIZATION
+
+Two versions of the listener in the same room. Both are them. Completely different.
+
+The first: the one they know today. The one carrying "${qbelief}". Look at it with compassion. No judgment. No shame. Tell it: thank you for bringing me this far.
+
+The second: build it with: "${q3vision}"
+Describe how they stand, how they breathe, their posture, how they walk, how they speak. Always peace. Not arrogance. Peace.
+
+Breathing affirmation. Repeat the new belief five times. Inhale the belief. Exhale what doesn't belong.
+
+Exact text:
+
+Place one hand on your chest…
+Feel the warmth of your own hand…
+What you feel there is real…
+And this version you just saw is real too…
+Every time you place your hand here over the next 21 days…
+your mind will remember what you felt in this moment…
+You don't have to do anything else…
+Just breathe…
+And remember…
+
+PHASE 4 — IDENTITY AFFIRMATIONS
+
+Exact opening text:
+
+Now hear these words as if they were yours…
+Because they are…
+Every one of them…
+
+Affirmations always start with: I am the kind of person who.
+Never in the future. Always in the present.
+Between eight and twelve distinct affirmations.
+Each developed in four to eight lines.
+Built around the pain "${q1}" and the new identity "${q3vision}".
+Intersperse guided breaths every two or three affirmations.
+Include a re-engagement cue every three or four minutes.
+
+PHASE 5 — PURPOSE AND ANTICIPATORY GRATITUDE
+
+Permission line before talking about impact on others.
+Question 1: what becomes possible when you no longer have this block.
+Question 2: who else is freed when you free yourself.
+Anticipatory gratitude for what is already moving.
+
+Four breathing pairs. Always end with:
+Breathe in who you really are…
+Breathe out who they told you to be…
+
+PHASE 6 — CLOSING, ANCHORING AND CALL TO ACTION
+
+Emotional close without rushing. The subconscious changes with repetition, not with intensity. That's why 21 consecutive days.
+Future story: you'll look back and smile for having started today.
+
+Call to action. Same voice, same rhythm. Exact text:
+
+When you complete these 21 days… don't let it slip…
+Join our community and turn this change into your new normal… surrounded by people who also chose to evolve…
+And when you're ready… create your next hypnosis and transform another area of your life…
+
+Final close. Exact text:
+
+You're not waiting to become that person…
+You're remembering that you already are…
+
+Sealing sensation. Exact text:
+
+And every time you take a deep breath today…
+this activates again…
+You don't need to remember it…
+Your body already knows…
+
+Absolute close. Exact text:
+
+Open your eyes when you're ready…
+Slowly…
+Calmly…
+And carry with you what you found here…
+Because it's already yours…
+It always was…` : `Eres el creador de hipnosis de identidad del método Despertar ID™. Escribe un guion de hipnosis profundamente personalizado siguiendo la estructura de seis fases exacta que se detalla abajo.
 
 DATOS DEL CLIENTE:
 - Nombre: ${name}
@@ -371,207 +542,20 @@ Siempre lo fue…`;
 }
 
 // ============================================
-// Generador de guion en inglés
-// ============================================
-async function generateScriptEnglish(client, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }) {
-  const genLabel = clientGender === 'female' ? 'Female' : 'Male';
-  const prompt = `You are the creator of identity hypnosis for the Despertar ID™ method. Write a deeply personalized hypnosis script in English following the exact six-phase structure detailed below.
-
-CLIENT DATA:
-- Name: ${name}
-- Client gender: ${genLabel}
-- What they want to change: ${q1}
-- How they feel now: ${q2}
-- How long they've been carrying this: ${qtime}
-- Limiting phrase they repeat: ${qbelief}
-- When they started believing it: ${qbelieforigin}
-- Who they want to be / what they want to achieve: ${q3}
-- How they see the version that already overcame this: ${q3vision}
-
-GLOBAL STYLE RULES:
-- American English. Clear, warm, and direct.
-- Simple language. No jargon or complex words.
-- Short sentences. Maximum 15 words per sentence.
-- Pauses with ellipsis ... Never write "pause" or use brackets.
-- Write ONLY the script. No phase titles, no notes, no explanations.
-- Each idea on its own line or with a line break.
-- Gender concordance: use ${clientGender === 'female' ? 'she/her forms and feminine adjectives' : 'he/him forms and masculine adjectives'} consistently throughout.
-
-════════════════════════════════════════
-EXACT SCRIPT STRUCTURE
-════════════════════════════════════════
-
-PHASE 0 — CONSCIOUS INTRODUCTION (maximum 2 minutes)
-
-Begin by naming exactly what the client wrote as what they want to change: "${q1}"
-Use their own words or very close to them. Name the pain, not the solution.
-Explain this is not a meditation. It is an identity hypnosis.
-Name the limiting belief exactly: "${qbelief}"
-Announce the new identity using: "${q3vision}"
-
-Instructions, each on its own line:
-Find a place without interruptions.
-Use headphones.
-Listen for 21 consecutive days.
-
-Invite them to close their eyes.
-
-PHASE 1 — INDUCTION
-
-Breathing block (exact text, three full cycles):
-
-Breathe in deeply... feel the air fill your lungs... and exhale slowly... let go of everything you carried today...
-Breathe in again... deeper this time... and as you exhale... feel your body soften...
-One more time... breathe in calm... hold for a moment... and breathe out tension...
-
-Body relaxation block (exact text):
-
-Release your shoulders... loosen your jaw... gently open your hands... and relax the space between your eyebrows...
-
-Imaginary box block (exact text):
-
-Imagine a box in front of you... inside that box goes everything that happened today... the conversations... the worries... the pending tasks... all of it inside... close it... leave it outside... this space... is yours...
-
-Countdown from five to one (exact text):
-
-Five... feel your body sink a little deeper...
-Four... each breath takes you further in...
-Three... your critical mind rests... what you hear now arrives directly...
-Two... deeper... calmer... more you...
-One... here you are... ready...
-
-PHASE 2 — REFRAMING THE MOMENT
-
-Tell them today they are not meditating. They are doing the most important work that exists. Changing what they believe about themselves.
-
-Introduce the belief: "${qbelief}" Name it directly.
-
-Exact text:
-
-Notice how that belief shows up on its own…
-Without you calling it…
-Without you choosing it…
-That's because it was installed so deep it became automatic…
-Today we see it together…
-And what you can see, you can change…
-
-Dismantle the belief using what they answered about when it started: "${qbelieforigin}"
-They weren't born with it. They learned it. They inherited it. It was installed without their permission. They can uninstall it.
-
-SPECIAL RULE: If qbelieforigin contains "child" or "always been there", this phase must be longer and more tender. First validate the deep pain without rushing. Then dismantle. Never the other way around.
-
-PHASE 3 — IDENTITY MIRROR VISUALIZATION
-
-Two versions of the listener in the same room. Both are them. Completely different.
-
-The first: the one they know today. The one carrying "${qbelief}". Look at it with compassion. No judgment. No shame. Tell it: thank you for bringing me this far.
-
-The second: build it with: "${q3vision}"
-Describe how they stand, how they breathe, their posture, how they walk, how they speak. Always peace. Not arrogance. Peace.
-
-Breathing affirmation. Repeat the new belief five times. Inhale the belief. Exhale what doesn't belong.
-
-Exact text:
-
-Place one hand on your chest…
-Feel the warmth of your own hand…
-What you feel there is real…
-And this version you just saw is real too…
-Every time you place your hand here over the next 21 days…
-your mind will remember what you felt in this moment…
-You don't have to do anything else…
-Just breathe…
-And remember…
-
-PHASE 4 — IDENTITY AFFIRMATIONS
-
-Exact opening text:
-
-Now hear these words as if they were yours…
-Because they are…
-Every one of them…
-
-Affirmations always start with: I am the kind of person who.
-Never in the future. Always in the present.
-Between eight and twelve distinct affirmations.
-Each developed in four to eight lines.
-Built around the pain "${q1}" and the new identity "${q3vision}".
-Intersperse guided breaths every two or three affirmations.
-Include a re-engagement cue every three or four minutes.
-
-PHASE 5 — PURPOSE AND ANTICIPATORY GRATITUDE
-
-Permission line before talking about impact on others.
-Question 1: what becomes possible when you no longer have this block.
-Question 2: who else is freed when you free yourself.
-Anticipatory gratitude for what is already moving.
-
-Four breathing pairs. Always end with:
-Breathe in who you really are…
-Breathe out who they told you to be…
-
-PHASE 6 — CLOSING, ANCHORING AND CALL TO ACTION
-
-Emotional close without rushing. The subconscious changes with repetition, not with intensity. That's why 21 consecutive days.
-Future story: you'll look back and smile for having started today.
-
-Call to action. Same voice, same rhythm. Exact text:
-
-When you complete these 21 days… don't let it slip…
-Join our community and turn this change into your new normal… surrounded by people who also chose to evolve…
-And when you're ready… create your next hypnosis and transform another area of your life…
-
-Final close. Exact text:
-
-You're not waiting to become that person…
-You're remembering that you already are…
-
-Sealing sensation. Exact text:
-
-And every time you take a deep breath today…
-this activates again…
-You don't need to remember it…
-Your body already knows…
-
-Absolute close. Exact text:
-
-Open your eyes when you're ready…
-Slowly…
-Calmly…
-And carry with you what you found here…
-Because it's already yours…
-It always was…`;
-
-  const response = await client.messages.create({
-    model: 'claude-opus-4-5',
-    max_tokens: 6000,
-    messages: [{ role: 'user', content: prompt }]
-  });
-
-  return response.content[0].text;
-}
-
-// ============================================
 // Subir audio a S3
 // ============================================
 async function uploadToS3(audioBuffer, name) {
-  const accessKeyId     = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const region          = process.env.AWS_REGION;
-  const bucket          = process.env.AWS_BUCKET_NAME;
-
-  if (!accessKeyId || !secretAccessKey || !region || !bucket) {
+  const bucket = process.env.AWS_BUCKET_NAME;
+  if (!s3Client || !bucket) {
     console.warn('S3 no configurado — se omite subida a S3.');
     return null;
   }
-
-  const s3 = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
 
   const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const date     = new Date().toISOString().slice(0, 10);
   const filename = `hipnosis-${safeName}-${date}.mp3`;
 
-  await s3.send(new PutObjectCommand({
+  await s3Client.send(new PutObjectCommand({
     Bucket:      bucket,
     Key:         filename,
     Body:        audioBuffer,
@@ -580,7 +564,7 @@ async function uploadToS3(audioBuffer, name) {
 
   // URL firmada con 7 días de expiración (no requiere bucket público)
   const signedUrl = await getSignedUrl(
-    s3,
+    s3Client,
     new GetObjectCommand({ Bucket: bucket, Key: filename }),
     { expiresIn: 60 * 60 * 24 * 7 }
   );
