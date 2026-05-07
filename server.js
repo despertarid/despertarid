@@ -57,6 +57,15 @@ app.get('/cancelado',      (req, res) => res.sendFile(join(__dirname, 'index.htm
 // En producción: reemplazar con Firebase o Supabase
 const orders = new Map();
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ============================================
 // PASO 1: Recibir formulario y crear orden
 // ============================================
@@ -82,11 +91,11 @@ app.post('/api/order/create', async (req, res) => {
     }
   }
 
-  // Crear ID único para esta orden
   const orderId = crypto.randomUUID();
+  const lang    = language === 'en' ? 'en' : 'es';
 
-  // Guardar datos del formulario
-  const lang = language === 'en' ? 'en' : 'es';
+  // Obtener link de PayPal primero — si falla, no se crea la orden huérfana
+  const paypalLink = await createPayPalOrder(orderId, lang);
 
   orders.set(orderId, {
     id: orderId,
@@ -99,9 +108,6 @@ app.post('/api/order/create', async (req, res) => {
     status: 'pending_payment',
     createdAt: new Date().toISOString()
   });
-
-  // Crear enlace de pago PayPal
-  const paypalLink = await createPayPalOrder(orderId, email, lang);
 
   res.json({
     orderId,
@@ -706,21 +712,24 @@ async function getPayPalAccessToken() {
     },
     body: 'grant_type=client_credentials'
   });
+
+  if (!res.ok) throw new Error(`PayPal auth error ${res.status}: ${await res.text()}`);
+
   const { access_token } = await res.json();
+  if (!access_token) throw new Error('PayPal no devolvió access_token.');
   return access_token;
 }
 
 // ============================================
 // Crear orden en PayPal
 // ============================================
-async function createPayPalOrder(orderId, email, language = 'es') {
+async function createPayPalOrder(orderId, language = 'es') {
   const baseUrl = process.env.PAYPAL_ENV === 'production'
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com';
 
   const access_token = await getPayPalAccessToken();
 
-  // Crear orden
   const orderRes = await fetch(`${baseUrl}/v2/checkout/orders`, {
     method: 'POST',
     headers: {
@@ -742,7 +751,10 @@ async function createPayPalOrder(orderId, email, language = 'es') {
   });
 
   const orderData = await orderRes.json();
+  if (!orderRes.ok) throw new Error(`PayPal order error ${orderRes.status}: ${JSON.stringify(orderData)}`);
+
   const approvalLink = orderData.links?.find(l => l.rel === 'approve')?.href;
+  if (!approvalLink) throw new Error('PayPal no devolvió el enlace de aprobación.');
   return approvalLink;
 }
 
@@ -843,10 +855,10 @@ app.get('/admin', (req, res) => {
       const statusColors = { pending_payment: '#888', generating: '#d4a017', delivered: '#2e7d32', error: '#c62828' };
       const color = statusColors[o.status] || '#333';
       return `<tr>
-        <td>${o.name}</td>
-        <td>${o.email}</td>
+        <td>${escapeHtml(o.name)}</td>
+        <td>${escapeHtml(o.email)}</td>
         <td>${new Date(o.createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</td>
-        <td style="color:${color};font-weight:600;">${o.status}</td>
+        <td style="color:${color};font-weight:600;">${escapeHtml(o.status)}</td>
         <td>${download}</td>
         <td style="font-size:11px;color:#999;">${o.id.slice(0, 8).toUpperCase()}</td>
       </tr>`;
