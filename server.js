@@ -38,6 +38,7 @@ const s3Client = (() => {
 })();
 
 // ─── Middleware ──────────────────────────────
+app.set('trust proxy', 1); // IP real del cliente detrás de proxies (Render, Railway, etc.)
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
@@ -56,6 +57,18 @@ app.get('/cancelado',      (req, res) => res.sendFile(join(__dirname, 'index.htm
 // ─── Almacenamiento temporal de órdenes ─────
 // En producción: reemplazar con Firebase o Supabase
 const orders = new Map();
+
+// Limpia órdenes terminales con más de 30 días para evitar leak de memoria
+setInterval(() => {
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  for (const [id, order] of orders) {
+    if (['delivered', 'error'].includes(order.status) && new Date(order.createdAt).getTime() < cutoff) {
+      orders.delete(id);
+    }
+  }
+}, 60 * 60 * 1000).unref(); // .unref() para que no bloquee el cierre del proceso
+
+const PROCESS_TIMEOUT_MS = 10 * 60 * 1000;
 
 const FIELD_LIMITS = {
   name: 100, email: 254,
@@ -116,7 +129,13 @@ app.post('/api/order/create', orderCreateLimiter, async (req, res) => {
   const lang    = language === 'en' ? 'en' : 'es';
 
   // Obtener link de PayPal primero — si falla, no se crea la orden huérfana
-  const paypalLink = await createPayPalOrder(orderId, lang);
+  let paypalLink;
+  try {
+    paypalLink = await createPayPalOrder(orderId, lang);
+  } catch (err) {
+    console.error('Error creando orden en PayPal:', err);
+    return res.status(502).json({ error: 'No se pudo crear el enlace de pago. Intenta de nuevo en unos minutos.' });
+  }
 
   orders.set(orderId, {
     id: orderId,
@@ -173,7 +192,10 @@ app.post('/api/paypal/webhook', async (req, res) => {
   res.json({ received: true });
 
   // Generar hipnosis en background (no bloquea la respuesta)
-  processHypnosis(order).catch(err => {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Timeout: generación superó 10 minutos')), PROCESS_TIMEOUT_MS)
+  );
+  Promise.race([processHypnosis(order), timeout]).catch(err => {
     console.error('Error generando hipnosis:', err);
     order.status = 'error';
     orders.set(orderId, order);
@@ -826,8 +848,13 @@ async function verifyPayPalWebhook(req) {
     })
   });
 
-  const { verification_status } = await verifyRes.json();
-  return verification_status === 'SUCCESS';
+  try {
+    const { verification_status } = await verifyRes.json();
+    return verification_status === 'SUCCESS';
+  } catch (err) {
+    console.error('Error parseando respuesta de verificación PayPal:', err);
+    return false;
+  }
 }
 
 // ============================================
@@ -856,10 +883,14 @@ function checkAdminAuth(req, res) {
     return false;
   }
 
-  const decoded = Buffer.from(authHeader.slice(6), 'base64').toString('utf-8');
+  const decoded  = Buffer.from(authHeader.slice(6), 'base64').toString('utf-8');
   const password = decoded.split(':').slice(1).join(':'); // soporta ":" en la contraseña
 
-  if (password !== adminPassword) {
+  const expected = Buffer.from(adminPassword);
+  const actual   = Buffer.from(password);
+  const match    = expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+
+  if (!match) {
     res.set('WWW-Authenticate', 'Basic realm="Despertar ID Admin"');
     res.status(401).send('No autorizado.');
     return false;
