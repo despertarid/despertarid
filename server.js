@@ -414,7 +414,7 @@ Slowly…
 Calmly…
 And carry with you what you found here…
 Because it's already yours…
-It always was…` : `Eres el creador de hipnosis de identidad del método Despertar ID™. Escribe un guion de hipnosis profundamente personalizado siguiendo la estructura de seis fases exacta que se detalla abajo.
+It always was…` : `Eres el creador de Programación de identidad™ del método Despertar ID™. Escribe un guion profundamente personalizado siguiendo la estructura de seis fases exacta que se detalla abajo.
 
 DATOS DEL CLIENTE:
 - Nombre: ${name}
@@ -444,7 +444,7 @@ FASE 0 — INTRODUCCIÓN CONSCIENTE (máximo 2 minutos)
 
 Comienza nombrando exactamente lo que el cliente escribió como qué quiere cambiar: "${q1}"
 Usa sus propias palabras o muy cerca. Nombra el dolor, no la solución.
-Explica que esto no es una meditación. Es una hipnosis de identidad.
+Explica que esto no es una meditación. Es una Programación de identidad™.
 Nombra la creencia limitante exacta: "${qbelief}"
 Anuncia la identidad nueva usando: "${q3vision}"
 
@@ -558,7 +558,7 @@ Llamado a la acción. Misma voz, mismo ritmo. Texto exacto:
 
 Cuando completes estos 21 días… no lo dejes caer…
 Únete a nuestra comunidad y convierte este cambio en tu nueva normalidad… rodeado de personas que también eligieron evolucionar…
-Y cuando estés listo… crea tu siguiente hipnosis y transforma otra área de tu vida…
+Y cuando estés listo… crea tu siguiente Programación de identidad™ y transforma otra área de tu vida…
 
 Cierre final. Texto exacto:
 
@@ -631,7 +631,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
   // Sin S3: adjuntar siempre (es el único canal de entrega).
   // Con S3: adjuntar solo si el archivo es pequeño (evita rechazos de email).
   const includeAttachment = !s3Url || audioBuffer.length <= MAX_ATTACHMENT_BYTES;
-  const downloadLabel = isEn ? 'Download my hypnosis' : 'Descargar mi hipnosis';
+  const downloadLabel = isEn ? 'Download my hypnosis' : 'Descargar mi Programación de identidad™';
   const downloadButton = s3Url
     ? `<div style="text-align:center;margin:28px 0;">
         <a href="${s3Url}" style="display:inline-block;background:#FFCC00;color:#1a1a1a;font-family:Georgia,serif;font-size:15px;font-weight:bold;padding:14px 32px;border-radius:6px;text-decoration:none;">
@@ -669,7 +669,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
       </div>
     ` : `
       <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a; line-height: 1.8;">
-        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${safeName}, tu hipnosis está lista.</h1>
+        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${safeName}, tu Programación de identidad™ está lista.</h1>
         <p style="color: #333; font-size: 15px; margin-bottom: 20px;">La creé basándome exactamente en lo que me compartiste.</p>
         <p style="color: #333; font-size: 15px; margin-bottom: 8px;"><strong>Antes de darle play, lee esto:</strong></p>
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
@@ -680,7 +680,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
         </p>
         ${downloadButton}
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
-          ${includeAttachment ? 'Tu hipnosis también está adjunta a este correo como archivo MP3.<br>Es tuya para siempre.' : 'El enlace de descarga es válido por 7 días.'}
+          ${includeAttachment ? 'Tu Programación de identidad™ también está adjunta a este correo como archivo MP3.<br>Es tuya para siempre.' : 'El enlace de descarga es válido por 7 días.'}
         </p>
         <p style="color: #555; font-size: 15px; margin-bottom: 32px;">
           Cuando empieces a notar el cambio, hay un siguiente paso esperándote.<br>
@@ -727,7 +727,7 @@ async function sendErrorEmail(resendClient, { name, email, orderId, language }) 
       <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.8;">
         <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${safeName}, algo salió mal.</h1>
         <p style="color:#333;font-size:15px;margin-bottom:20px;">
-          Tuvimos un problema técnico generando tu hipnosis.<br>
+          Tuvimos un problema técnico generando tu Programación de identidad™.<br>
           Tu pago está seguro. Lo vamos a resolver manualmente y te lo enviamos lo antes posible.
         </p>
         <p style="color:#333;font-size:15px;">
