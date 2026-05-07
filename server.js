@@ -6,7 +6,6 @@
 
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import { rateLimit } from 'express-rate-limit';
 import Anthropic from '@anthropic-ai/sdk';
 import { Resend } from 'resend';
@@ -40,7 +39,7 @@ const s3Client = (() => {
 
 // ─── Middleware ──────────────────────────────
 app.use(cors({ origin: '*' }));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // ─── Frontend ────────────────────────────────
 app.get('/',               (req, res) => res.sendFile(join(__dirname, 'index.html')));
@@ -561,7 +560,7 @@ Porque ya es tuyo…
 Siempre lo fue…`;
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-opus-4-7',
     max_tokens: 6000,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -604,7 +603,8 @@ async function uploadToS3(audioBuffer, name) {
 // Envío de email con Resend
 // ============================================
 async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, orderId, s3Url, language }) {
-  const isEn = language === 'en';
+  const isEn     = language === 'en';
+  const safeName = escapeHtml(name);
   const MAX_ATTACHMENT_BYTES = 7 * 1024 * 1024;
   // Sin S3: adjuntar siempre (es el único canal de entrega).
   // Con S3: adjuntar solo si el archivo es pequeño (evita rechazos de email).
@@ -624,7 +624,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
 
   const html = isEn ? `
       <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a; line-height: 1.8;">
-        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${name}, your hypnosis is ready.</h1>
+        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${safeName}, your hypnosis is ready.</h1>
         <p style="color: #333; font-size: 15px; margin-bottom: 20px;">I created it based exactly on what you shared with me.</p>
         <p style="color: #333; font-size: 15px; margin-bottom: 8px;"><strong>Before you press play, read this:</strong></p>
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
@@ -647,7 +647,7 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
       </div>
     ` : `
       <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #1a1a1a; line-height: 1.8;">
-        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${name}, tu hipnosis está lista.</h1>
+        <h1 style="font-size: 22px; font-weight: 400; margin-bottom: 20px;">${safeName}, tu hipnosis está lista.</h1>
         <p style="color: #333; font-size: 15px; margin-bottom: 20px;">La creé basándome exactamente en lo que me compartiste.</p>
         <p style="color: #333; font-size: 15px; margin-bottom: 8px;"><strong>Antes de darle play, lee esto:</strong></p>
         <p style="color: #555; font-size: 15px; margin-bottom: 20px;">
@@ -681,14 +681,15 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
 // Email de error al usuario
 // ============================================
 async function sendErrorEmail(resendClient, { name, email, orderId, language }) {
-  const isEn = language === 'en';
+  const isEn     = language === 'en';
+  const safeName = escapeHtml(name);
   await resendClient.emails.send({
     from: 'Despertar ID™ <hipnosis@qrise.co>',
     to: email,
     subject: isEn ? 'We had a problem with your order' : 'Tuvimos un problema con tu orden',
     html: isEn ? `
       <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.8;">
-        <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${name}, something went wrong.</h1>
+        <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${safeName}, something went wrong.</h1>
         <p style="color:#333;font-size:15px;margin-bottom:20px;">
           We had a technical problem generating your hypnosis.<br>
           Your payment is safe. We'll fix this manually and send it to you as soon as possible.
@@ -702,7 +703,7 @@ async function sendErrorEmail(resendClient, { name, email, orderId, language }) 
       </div>
     ` : `
       <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.8;">
-        <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${name}, algo salió mal.</h1>
+        <h1 style="font-size:22px;font-weight:400;margin-bottom:20px;">${safeName}, algo salió mal.</h1>
         <p style="color:#333;font-size:15px;margin-bottom:20px;">
           Tuvimos un problema técnico generando tu hipnosis.<br>
           Tu pago está seguro. Lo vamos a resolver manualmente y te lo enviamos lo antes posible.
