@@ -1,7 +1,7 @@
 {
   "name": "despertar-id-backend",
   "version": "1.0.0",
-  "description": "Backend para hipnosis personalizadas automatizadas — Despertar ID™",
+  "description": "Backend para Programación de identidad™ personalizada — Despertar ID™ / Self ID Reset™",
   "type": "module",
   "main": "server.js",
   "scripts": {

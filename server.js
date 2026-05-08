@@ -472,8 +472,8 @@ Cuenta regresiva del cinco al uno (texto exacto):
 Cinco... siente cómo tu cuerpo se hunde un poco más...
 Cuatro... cada respiración te lleva más adentro...
 Tres... tu mente crítica descansa... lo que escuches ahora llega directo...
-Dos... más adentro... más tranquilo... más tú...
-Uno... aquí estás... listo...
+Dos... más adentro... más tranquilo/a... más tú...
+Uno... aquí estás... listo/a...
 
 FASE 2 — REENCUADRE DEL MOMENTO
 
@@ -777,7 +777,8 @@ async function sendDeliveryEmail(resendClient, { name, email, audioBuffer, order
     ? [{ filename: `identity-programming-${name.toLowerCase().replace(/\s+/g, '-')}.mp3`, content: audioBuffer.toString('base64'), contentType: 'audio/mpeg' }]
     : [];
 
-  await resendClient.emails.send({ from: 'Despertar ID™ <hipnosis@qrise.co>', to: email, subject, html, attachments });
+  const fromName = isEn ? 'Self ID Reset™' : 'Despertar ID™';
+  await resendClient.emails.send({ from: `${fromName} <hipnosis@qrise.co>`, to: email, subject, html, attachments });
 }
 
 // ============================================
@@ -869,7 +870,7 @@ async function createPayPalOrder(orderId, language = 'es') {
       purchase_units: [{
         custom_id: orderId,
         amount: { currency_code: 'USD', value: language === 'en' ? '57.00' : '27.00' },
-        description: 'Hipnosis personalizada — Despertar ID™'
+        description: language === 'en' ? 'Identity programming™ — Self ID Reset™' : 'Programación de identidad™ — Despertar ID™'
       }],
       application_context: {
         return_url: `${process.env.FRONTEND_URL}${language === 'en' ? '/en/gracias' : '/gracias'}`,
