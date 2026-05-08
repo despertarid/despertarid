@@ -73,7 +73,7 @@ const PROCESS_TIMEOUT_MS = 10 * 60 * 1000;
 const FIELD_LIMITS = {
   name: 100, email: 254,
   q1: 500, q2: 500, q3: 500, q3vision: 500,
-  qtime: 300, qbelief: 300, qbelieforigin: 300
+  qbelief: 300
 };
 
 const orderCreateLimiter = rateLimit({
@@ -101,9 +101,9 @@ function escapeHtml(str) {
 // PASO 1: Recibir formulario y crear orden
 // ============================================
 app.post('/api/order/create', orderCreateLimiter, async (req, res) => {
-  const { name, email, clientGender, gender, language, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = req.body;
+  const { name, email, clientGender, gender, language, q1, q2, qbelief, q3, q3vision } = req.body;
 
-  if (!name || !email || !clientGender || !gender || !q1 || !q2 || !qtime || !qbelief || !qbelieforigin || !q3 || !q3vision) {
+  if (!name || !email || !clientGender || !gender || !q1 || !q2 || !qbelief || !q3 || !q3vision) {
     return res.status(400).json({ error: 'Faltan campos requeridos.' });
   }
 
@@ -144,7 +144,7 @@ app.post('/api/order/create', orderCreateLimiter, async (req, res) => {
     clientGender,
     gender,
     language: lang,
-    q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision,
+    q1, q2, qbelief, q3, q3vision,
     status: 'pending_payment',
     createdAt: new Date().toISOString()
   });
@@ -208,13 +208,13 @@ app.post('/api/paypal/webhook', async (req, res) => {
 // PASO 3: Generar hipnosis + audio + enviar
 // ============================================
 async function processHypnosis(order) {
-  const { id, name, email, clientGender, gender, language, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision } = order;
+  const { id, name, email, clientGender, gender, language, q1, q2, qbelief, q3, q3vision } = order;
 
   console.log(`[${id}] Iniciando generación para ${email}`);
 
   // 3a. Generar guion con Claude
   console.log(`[${id}] Generando guion con IA...`);
-  const script = await generateScript(anthropic, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }, language);
+  const script = await generateScript(anthropic, { name, clientGender, q1, q2, qbelief, q3, q3vision }, language);
 
   // 3b. Convertir guion a audio con ElevenLabs
   console.log(`[${id}] Convirtiendo a audio con ElevenLabs...`);
@@ -244,7 +244,7 @@ async function processHypnosis(order) {
 // ============================================
 // Generador de guion con Claude (ES + EN)
 // ============================================
-async function generateScript(client, { name, clientGender, q1, q2, qtime, qbelief, qbelieforigin, q3, q3vision }, language = 'es') {
+async function generateScript(client, { name, clientGender, q1, q2, qbelief, q3, q3vision }, language = 'es') {
   const isEn     = language === 'en';
   const genLabel = isEn
     ? (clientGender === 'female' ? 'Female'   : 'Male')
@@ -256,9 +256,7 @@ CLIENT DATA:
 - Client gender: ${genLabel}
 - What they want to change: ${q1}
 - How they feel now: ${q2}
-- How long they've been carrying this: ${qtime}
 - Limiting phrase they repeat: ${qbelief}
-- When they started believing it: ${qbelieforigin}
 - Who they want to be / what they want to achieve: ${q3}
 - How they see the version that already overcame this: ${q3vision}
 
@@ -329,10 +327,10 @@ That's because it was installed so deep it became automatic…
 Today we see it together…
 And what you can see, you can change…
 
-Dismantle the belief using what they answered about when it started: "${qbelieforigin}"
+Dismantle the belief using what they shared: their patterns ("${q1}"), how they feel ("${q2}"), and the phrase they repeat ("${qbelief}").
 They weren't born with it. They learned it. They inherited it. It was installed without their permission. They can uninstall it.
 
-SPECIAL RULE: If qbelieforigin contains "child" or "always been there", this phase must be longer and more tender. First validate the deep pain without rushing. Then dismantle. Never the other way around.
+This phase must be tender and validating. First acknowledge the pain fully. Then dismantle. Never the other way around.
 
 PHASE 3 — IDENTITY MIRROR VISUALIZATION
 
@@ -421,9 +419,7 @@ DATOS DEL CLIENTE:
 - Género del cliente: ${genLabel}
 - Qué quiere cambiar: ${q1}
 - Cómo se siente ahora: ${q2}
-- Tiempo cargando esto: ${qtime}
 - Frase limitante que se repite: ${qbelief}
-- Cuándo empezó a creer eso: ${qbelieforigin}
 - Quién quiere ser / qué quiere lograr: ${q3}
 - Cómo se ve la versión que ya superó esto: ${q3vision}
 
@@ -494,10 +490,10 @@ Eso es porque fue instalada tan profundo que se volvió automática…
 Hoy la vemos juntos…
 Y lo que puedes ver, puedes cambiar…
 
-Desmonta la creencia usando lo que respondió sobre cuándo empezó: "${qbelieforigin}"
+Desmonta la creencia usando lo que compartió: sus patrones ("${q1}"), cómo se siente ("${q2}") y la frase que se repite ("${qbelief}").
 No nació con ella. La aprendió. La heredó. La instalaron sin su permiso. Puede desinstalarla.
 
-REGLA ESPECIAL: Si qbelieforigin contiene "niño" o "siempre ha estado ahí", esta fase debe ser más larga y más tierna. Primero valida el dolor profundo sin prisa. Luego desmonta. Nunca al revés.
+Esta fase debe ser tierna y validadora. Primero reconoce el dolor completamente. Luego desmonta. Nunca al revés.
 
 FASE 3 — VISUALIZACIÓN DEL ESPEJO DE IDENTIDAD
 
